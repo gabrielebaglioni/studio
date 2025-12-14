@@ -1,3 +1,58 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "partner-logo-1",
+      "description": "Abstract representation of leaves",
+      "imageUrl": "https://images.unsplash.com/photo-1682149546715-2e4699f83dbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhYnN0cmFjdCUyMGxlYXZlc3xlbnwwfHx8fDE3NjU3Mzg4MDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract leaves"
+    },
+    {
+      "id": "partner-logo-2",
+      "description": "Abstract representation of a globe",
+      "imageUrl": "https://images.unsplash.com/photo-1663274271548-7c45a9efc920?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhYnN0cmFjdCUyMGdsb2JlfGVufDB8fHx8MTc2NTczODgwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract globe"
+    },
+    {
+      "id": "partner-logo-3",
+      "description": "Abstract representation of humanity and environment",
+      "imageUrl": "https://images.unsplash.com/photo-1758582268054-d373f6cb24a7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhYnN0cmFjdCUyMHVuaXR5fGVufDB8fHx8MTc2NTczODgwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract unity"
+    },
+    {
+      "id": "gallery-1",
+      "description": "Volunteers planting trees in a field",
+      "imageUrl": "https://images.unsplash.com/photo-1758599668356-c8c919e24dda?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjb21tdW5pdHklMjBwbGFudGluZ3xlbnwwfHx8fDE3NjU3Mzg4MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "community planting"
+    },
+    {
+      "id": "gallery-2",
+      "description": "A lush, restored forest area",
+      "imageUrl": "https://images.unsplash.com/photo-1609862505388-ad12776003c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZXN0b3JlZCUyMGZvcmVzdHxlbnwwfHx8fDE3NjU3Mzg4MDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "restored forest"
+    },
+    {
+      "id": "gallery-3",
+      "description": "A farmer holding fresh, organic produce",
+      "imageUrl": "https://images.unsplash.com/photo-1737960320564-9e681df95dc6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8c3VzdGFpbmFibGUlMjBmYXJtaW5nfGVufDB8fHx8MTc2NTczODgwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sustainable farming"
+    },
+    {
+      "id": "gallery-4",
+      "description": "Smiling children from a local community",
+      "imageUrl": "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxoYXBweSUyMGNoaWxkcmVufGVufDB8fHx8MTc2NTczNzczNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "happy children"
+    },
+    {
+      "id": "gallery-5",
+      "description": "A scenic landscape in Ghana",
+      "imageUrl": "https://images.unsplash.com/photo-1558857052-6ee056f07c14?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnaGFuYSUyMGxhbmRzY2FwZXxlbnwwfHx8fDE3NjU3Mzg4MDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ghana landscape"
+    },
+    {
+      "id": "gallery-6",
+      "description": "Hands holding clean, clear water",
+      "imageUrl": "https://images.unsplash.com/photo-1584056866693-1f9d42e9feb6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjbGVhbiUyMHdhdGVyfGVufDB8fHx8MTc2NTcyNTMzOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "clean water"
+    }
+  ]
 }

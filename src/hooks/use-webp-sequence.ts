@@ -23,11 +23,15 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
     const { sequence } = program;
     const totalFrames = sequence.frameCount;
     
-    // Only preload if not already cached
+    // Check if frames are already in the ref and match the current program
     if (imageFrames.current.length === totalFrames && imageFrames.current[0].src.includes(sequence.baseUrl)) {
-        setIsLoaded(true);
-        setLoadingProgress(100);
-        return;
+        // Verify they are actually loaded
+        const allCachedAndLoaded = imageFrames.current.every(img => img.complete);
+        if (allCachedAndLoaded) {
+            setIsLoaded(true);
+            setLoadingProgress(100);
+            return;
+        }
     }
 
     imageFrames.current = [];
@@ -37,7 +41,8 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
       const img = new Image();
       const frameNumber = i.toString().padStart(sequence.padLength, "0");
       img.src = `${sequence.baseUrl}${frameNumber}${sequence.fileExtension}`;
-      img.onload = () => {
+      
+      const handleLoad = () => {
         loadedCount++;
         setLoadingProgress((loadedCount / totalFrames) * 100);
         if (loadedCount === totalFrames) {
@@ -45,6 +50,13 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
           setIsLoaded(true);
         }
       };
+
+      img.onload = handleLoad;
+      // If the image is already cached, onload might not fire, so check 'complete' property
+      if (img.complete) {
+        handleLoad();
+      }
+
       frames[i-1] = img;
     }
   }, [program]);

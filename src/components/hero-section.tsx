@@ -28,11 +28,11 @@ export function HeroSection() {
   }, [isLoaded, isInitialLoad]);
 
   const drawImage = useCallback(() => {
-    if (!isLoaded || !canvasRef.current || !imageFrames[currentFrame - 1]) return;
+    if (!isLoaded || !canvasRef.current || !imageFrames[currentFrame]) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const img = imageFrames[currentFrame - 1];
+    const img = imageFrames[currentFrame];
 
     if (ctx) {
       const canvasWidth = window.innerWidth;

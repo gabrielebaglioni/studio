@@ -48,7 +48,7 @@ export const programs: Program[] = [
     ctas: { primary: "BECOME A PARTNER", secondary: "LEARN ABOUT US" },
     sequence: {
       baseUrl: "https://xnuhligbmtlwrzemwgmv.supabase.co/storage/v1/object/public/globe-animation/frame_",
-      frameCount: 240,
+      frameCount: 194,
       padLength: 6,
       fileExtension: ".webp",
     },
@@ -60,7 +60,7 @@ export const programs: Program[] = [
     ctas: { primary: "JOIN THE MOVEMENT", secondary: "OUR PROJECTS" },
     sequence: {
       baseUrl: "https://xnuhligbmtlwrzemwgmv.supabase.co/storage/v1/object/public/globe-animation/frame_",
-      frameCount: 240,
+      frameCount: 194,
       padLength: 6,
       fileExtension: ".webp",
     },
@@ -72,7 +72,7 @@ export const programs: Program[] = [
     ctas: { primary: "GET INVOLVED", secondary: "READ MORE" },
     sequence: {
       baseUrl: "https://xnuhligbmtlwrzemwgmv.supabase.co/storage/v1/object/public/globe-animation/frame_",
-      frameCount: 240,
+      frameCount: 194,
       padLength: 6,
       fileExtension: ".webp",
     },

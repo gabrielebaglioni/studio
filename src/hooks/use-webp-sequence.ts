@@ -24,23 +24,30 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
     const { sequence } = program;
     const totalFrames = sequence.frameCount;
     
-    // Reset if program changes
     if (imageFrames.current.length > 0 && !imageFrames.current[0].src.includes(sequence.baseUrl)) {
         console.log('[QIA] Program changed, clearing old frames.');
         imageFrames.current = [];
     }
 
-    // Pre-check for cached images
     if (imageFrames.current.length === totalFrames) {
-        console.log('[QIA] Frames already in memory. Verifying if loaded...');
-        const allCachedAndLoaded = imageFrames.current.every(img => img.complete);
-        if (allCachedAndLoaded) {
+        console.log('[QIA] Frames array already populated. Checking status...');
+        
+        let loadedCount = 0;
+        imageFrames.current.forEach(img => {
+            if (img.complete) {
+                loadedCount++;
+            }
+        });
+
+        const progress = (loadedCount / totalFrames) * 100;
+        setLoadingProgress(progress);
+
+        if (loadedCount === totalFrames) {
             console.log('[QIA] All frames are already loaded from cache. Setting isLoaded to true.');
             setIsLoaded(true);
-            setLoadingProgress(100);
             return;
         } else {
-             console.log('[QIA] Not all cached frames are complete. Re-checking status.');
+             console.log(`[QIA] ${loadedCount}/${totalFrames} frames are complete. Re-attaching load listeners.`);
         }
     }
 
@@ -48,11 +55,10 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
     let loadedCount = 0;
     const frames: HTMLImageElement[] = [];
 
-    const handleLoad = (index: number) => {
+    const handleLoad = () => {
         loadedCount++;
         const progress = (loadedCount / totalFrames) * 100;
         setLoadingProgress(progress);
-        // console.log(`[QIA] Image ${index + 1}/${totalFrames} loaded. Progress: ${progress.toFixed(2)}%`);
         if (loadedCount === totalFrames) {
           console.log('[QIA] All frames finished loading. Setting isLoaded to true.');
           imageFrames.current = frames;
@@ -68,12 +74,9 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
       frames[i] = img;
 
       if (img.complete) {
-        // If the image is already in cache and complete, trigger load immediately.
-        // console.log(`[QIA] Image ${i + 1} was already in cache.`);
-        handleLoad(i);
+        handleLoad();
       } else {
-        // Otherwise, add the event listener.
-        img.onload = () => handleLoad(i);
+        img.onload = handleLoad;
         img.onerror = () => console.error(`[QIA] Error loading image: ${img.src}`);
       }
     }
@@ -91,7 +94,14 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
       scrollFraction = Math.min(1, Math.max(0, scrollDistance / scrollableHeight));
     }
     
-    const frameIndex = Math.floor(scrollFraction * (program.sequence.frameCount - 1));
+    const frameCount = program.sequence.frameCount;
+    // Ensure frameIndex is always within the valid range [0, frameCount - 1]
+    const frameIndex = Math.min(
+      frameCount - 1,
+      Math.floor(scrollFraction * frameCount)
+    );
+    
+    // Set currentFrame to be 1-based index [1, frameCount]
     setCurrentFrame(frameIndex + 1);
 
   }, [heroRef, program]);

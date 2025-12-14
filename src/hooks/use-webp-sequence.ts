@@ -16,7 +16,7 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
 
   useEffect(() => {
     if (!program) return;
-    
+
     console.log(`[QIA] Starting image sequence load for: ${program.name}`);
     setIsLoaded(false);
     setLoadingProgress(0);
@@ -24,34 +24,6 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
     const { sequence } = program;
     const totalFrames = sequence.frameCount;
     
-    if (imageFrames.current.length > 0 && !imageFrames.current[0].src.includes(sequence.baseUrl)) {
-        console.log('[QIA] Program changed, clearing old frames.');
-        imageFrames.current = [];
-    }
-
-    if (imageFrames.current.length === totalFrames) {
-        console.log('[QIA] Frames array already populated. Checking status...');
-        
-        let loadedCount = 0;
-        imageFrames.current.forEach(img => {
-            if (img.complete) {
-                loadedCount++;
-            }
-        });
-
-        const progress = (loadedCount / totalFrames) * 100;
-        setLoadingProgress(progress);
-
-        if (loadedCount === totalFrames) {
-            console.log('[QIA] All frames are already loaded from cache. Setting isLoaded to true.');
-            setIsLoaded(true);
-            return;
-        } else {
-             console.log(`[QIA] ${loadedCount}/${totalFrames} frames are complete. Re-attaching load listeners.`);
-        }
-    }
-
-
     let loadedCount = 0;
     const frames: HTMLImageElement[] = [];
 
@@ -65,13 +37,16 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
           setIsLoaded(true);
         }
     };
+    
+    // Clear previous frames if program changes
+    imageFrames.current = [];
 
     console.log(`[QIA] Loading ${totalFrames} frames...`);
     for (let i = 0; i < totalFrames; i++) {
       const img = new Image();
       const frameNumber = (i + 1).toString().padStart(sequence.padLength, "0");
       img.src = `${sequence.baseUrl}${frameNumber}${sequence.fileExtension}`;
-      frames[i] = img;
+      frames.push(img);
 
       if (img.complete) {
         handleLoad();

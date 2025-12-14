@@ -10,7 +10,7 @@ interface UseWebpSequenceProps {
 export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [currentFrame, setCurrentFrame] = useState(0);
+  const [currentFrame, setCurrentFrame] = useState(0); // This will be the index (0 to 191)
   const imageFrames = useRef<HTMLImageElement[]>([]);
   const animationFrameId = useRef<number>();
 
@@ -20,6 +20,7 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
     console.log(`[QIA] Starting image sequence load for: ${program.name}`);
     setIsLoaded(false);
     setLoadingProgress(0);
+    setCurrentFrame(0);
     imageFrames.current = []; // Clear previous frames
     
     const { sequence } = program;
@@ -46,38 +47,39 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
         }
     };
     
-    const checkForCache = () => {
-        if (loadInitiated) return;
-        loadInitiated = true;
+    const loadImages = () => {
+      if (loadInitiated) return;
+      loadInitiated = true;
+      
+      let allCached = true;
+      // Loop from 1 to 192 (inclusive) as requested
+      for (let i = 1; i <= totalFrames; i++) {
+        const img = new Image();
+        const frameNumber = i.toString().padStart(sequence.padLength, "0");
+        img.src = `${sequence.baseUrl}${frameNumber}${sequence.fileExtension}`;
+        frames.push(img);
         
-        let allCached = true;
-        for (let i = 0; i < totalFrames; i++) {
-            const img = new Image();
-            const frameNumber = i.toString().padStart(sequence.padLength, "0");
-            img.src = `${sequence.baseUrl}${frameNumber}${sequence.fileExtension}`;
-            frames.push(img);
-            
-            if (img.complete) {
-                handleLoad();
-            } else {
-                allCached = false;
-                img.onload = handleLoad;
-                img.onerror = () => console.error(`[QIA] Error loading image: ${img.src}`);
-            }
+        if (img.complete) {
+          handleLoad();
+        } else {
+          allCached = false;
+          img.onload = handleLoad;
+          img.onerror = () => console.error(`[QIA] Error loading image: ${img.src}`);
         }
+      }
 
-        if (allCached && totalFrames > 0) {
-            console.log('[QIA] All frames were already cached.');
-            if (imageFrames.current.length !== totalFrames) {
-                imageFrames.current = frames;
-            }
-            setIsLoaded(true);
-            setLoadingProgress(100);
+      if (allCached) {
+        console.log('[QIA] All frames were already cached.');
+        if (imageFrames.current.length !== totalFrames) {
+          imageFrames.current = frames;
         }
-    }
+        setIsLoaded(true);
+        setLoadingProgress(100);
+      }
+    };
 
     // Use a small timeout to allow the browser to check the cache
-    const timeoutId = setTimeout(checkForCache, 100);
+    const timeoutId = setTimeout(loadImages, 100);
 
     return () => clearTimeout(timeoutId);
 
@@ -95,8 +97,9 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
       scrollFraction = Math.min(1, Math.max(0, scrollDistance / scrollableHeight));
     }
     
-    const frameCount = program.sequence.frameCount;
-    const frameIndex = Math.floor(scrollFraction * (frameCount -1));
+    const frameCount = program.sequence.frameCount; // This will be 192
+    // Calculate index from 0 to 191
+    const frameIndex = Math.floor(scrollFraction * (frameCount - 1));
     
     setCurrentFrame(frameIndex);
 

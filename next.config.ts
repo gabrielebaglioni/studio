@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  watchOptions: {
+    ignored: ['**/.#*.ts', '**/next.config.ts'],
+  },
 };
 
 export default nextConfig;

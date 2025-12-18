@@ -47,8 +47,8 @@ export const programs: Program[] = [
     description: "We collaborate and partner with corporations, institutions and individuals to repair, reclaim, and revive damaged lands, forests, and water bodies.",
     ctas: { primary: "BECOME A PARTNER", secondary: "LEARN ABOUT US" },
     sequence: {
-      baseUrl: "https://xnuhligbmtlwrzemwgmv.supabase.co/storage/v1/object/public/globe-animation/frame_",
-      frameCount: 120,
+      baseUrl: "https://xnuhligbmtlwrzemwgmv.supabase.co/storage/v1/object/public/climateChange/frame_",
+      frameCount: 80,
       padLength: 6,
       fileExtension: ".webp",
     },

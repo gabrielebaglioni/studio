@@ -10,7 +10,7 @@ interface UseWebpSequenceProps {
 export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [currentFrame, setCurrentFrame] = useState(0); // This will be the index (0 to 191)
+  const [currentFrame, setCurrentFrame] = useState(0);
   const imageFrames = useRef<HTMLImageElement[]>([]);
   const animationFrameId = useRef<number>();
 
@@ -21,20 +21,19 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
     setIsLoaded(false);
     setLoadingProgress(0);
     setCurrentFrame(0);
-    imageFrames.current = []; // Clear previous frames
-    
+    imageFrames.current = [];
+
     const { sequence } = program;
     const totalFrames = sequence.frameCount;
-    
+
     if (totalFrames === 0) {
         setIsLoaded(true);
         setLoadingProgress(100);
         return;
     }
-    
+
     let loadedCount = 0;
     const frames: HTMLImageElement[] = [];
-    let loadInitiated = false;
 
     const handleLoad = () => {
         loadedCount++;
@@ -47,12 +46,8 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
         }
     };
     
-    const loadImages = () => {
-      if (loadInitiated) return;
-      loadInitiated = true;
-      
+    const checkForCache = () => {
       let allCached = true;
-      // Loop from 1 to 192 (inclusive) as requested
       for (let i = 1; i <= totalFrames; i++) {
         const img = new Image();
         const frameNumber = i.toString().padStart(sequence.padLength, "0");
@@ -79,7 +74,7 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
     };
 
     // Use a small timeout to allow the browser to check the cache
-    const timeoutId = setTimeout(loadImages, 100);
+    const timeoutId = setTimeout(checkForCache, 100);
 
     return () => clearTimeout(timeoutId);
 
@@ -97,9 +92,9 @@ export const useWebpSequence = ({ program, heroRef }: UseWebpSequenceProps) => {
       scrollFraction = Math.min(1, Math.max(0, scrollDistance / scrollableHeight));
     }
     
-    const frameCount = program.sequence.frameCount; // This will be 192
-    // Calculate index from 0 to 191
-    const frameIndex = Math.floor(scrollFraction * (frameCount - 1));
+    const frameCount = program.sequence.frameCount;
+    // Calculate index from 0 to frameCount - 1
+    const frameIndex = Math.min(frameCount - 1, Math.floor(scrollFraction * frameCount));
     
     setCurrentFrame(frameIndex);
 

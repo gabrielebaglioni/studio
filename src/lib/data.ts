@@ -71,8 +71,8 @@ export const programs: Program[] = [
     description: "We customized and execute programmes and projects to mitigate imbalance in our society.",
     ctas: { primary: "GET INVOLVED", secondary: "READ MORE" },
     sequence: {
-      baseUrl: "https://xnuhligbmtlwrzemwgmv.supabase.co/storage/v1/object/public/globe-animation/frame_",
-      frameCount: 120,
+      baseUrl: "https://xnuhligbmtlwrzemwgmv.supabase.co/storage/v1/object/public/socialAnimation/frame_",
+      frameCount: 160,
       padLength: 6,
       fileExtension: ".webp",
     },

@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { programs, socialLinks } from '@/lib/data';
-import { useWebpSequence } from '@/hooks/use-webp-sequence';
+import { useScrollSequence } from '@/hooks/useScrollSequence';
 import { LoadingScreen } from './loading-screen';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
-import { Progress } from './ui/progress';
 
 export function HeroSection() {
   const [currentProgramIndex, setCurrentProgramIndex] = useState(0);
@@ -18,21 +17,25 @@ export function HeroSection() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const currentProgram = programs[currentProgramIndex];
-  const { loadingProgress, isLoaded, currentFrame, imageFrames } = useWebpSequence({ program: currentProgram, heroRef });
-
+  const { isReady, currentFrame, getFrame, loadingProgress } = useScrollSequence({ program: currentProgram, heroRef });
+  
   useEffect(() => {
-    if (isLoaded) {
-      if(isInitialLoad) setIsInitialLoad(false);
+    if (isReady && isInitialLoad) {
+      setIsInitialLoad(false);
+    }
+    if (isReady) {
       setIsSwitching(false);
     }
-  }, [isLoaded, isInitialLoad]);
+  }, [isReady, isInitialLoad]);
 
-  const drawImage = useCallback(() => {
-    if (!isLoaded || !canvasRef.current || !imageFrames[currentFrame]) return;
+  const drawImage = useCallback(async () => {
+    if (!isReady || !canvasRef.current) return;
+
+    const frame = await getFrame(currentFrame);
+    if (!frame) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const img = imageFrames[currentFrame];
 
     if (ctx) {
       const canvasWidth = window.innerWidth;
@@ -40,7 +43,7 @@ export function HeroSection() {
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
 
-      const imgAspectRatio = img.width / img.height;
+      const imgAspectRatio = frame.width / frame.height;
       const canvasAspectRatio = canvasWidth / canvasHeight;
 
       let renderWidth, renderHeight, x, y;
@@ -57,9 +60,10 @@ export function HeroSection() {
         y = (canvasHeight - renderHeight) / 2;
       }
       
-      ctx.drawImage(img, x, y, renderWidth, renderHeight);
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+      ctx.drawImage(frame, x, y, renderWidth, renderHeight);
     }
-  }, [isLoaded, currentFrame, imageFrames]);
+  }, [isReady, currentFrame, getFrame]);
 
   useEffect(() => {
     drawImage();
@@ -81,7 +85,7 @@ export function HeroSection() {
     }, 300); // Wait for fade out animation
   };
 
-  if (isInitialLoad && !isLoaded) {
+  if (isInitialLoad && !isReady) {
     return <LoadingScreen progress={loadingProgress} />;
   }
 

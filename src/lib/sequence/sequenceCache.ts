@@ -1,171 +1,452 @@
-'use client';
+"use client";
 
-import { LRUCache } from 'lru-cache';
+import { LRUCache } from "lru-cache";
+import type { Program } from "@/lib/data";
+import { buildFrameUrl } from "@/lib/sequence/sequenceUrl";
 
-type Frame = ImageBitmap | HTMLImageElement;
+export type Frame = HTMLImageElement;
 
-// LRUCache options: Max 200 items, items expire after 5 minutes.
-const options = {
-  max: 200,
-  ttl: 1000 * 60 * 5, 
+type SequenceConfig = Program["sequence"];
+
+type PreloadAllOptions = {
+  concurrency: number;
+  signal?: AbortSignal;
+  onProgress?: (pct: number) => void;
 };
 
 /**
- * A singleton cache manager for animation frames.
- * - In-memory LRU cache for decoded frames.
- * - Deduplication of in-flight requests.
- * - Concurrency limiting for preloading.
+ * Best-practice caching (big-brand style):
+ * - Pinned cache for "hot window" frames (never evicted, guarantees instant switch).
+ * - LRU cache for everything else (adaptive size based on device capabilities).
+ * - Deduplication for in-flight loads.
+ * - Failed URL short TTL to avoid spam-retry loops on 404.
+ *
+ * NOTE:
+ * - Preloading *decoded* frames for all programs is heavy on low-end devices.
+ * - We still support it, but the cache is adaptive, and pinned frames always win.
  */
 class SequenceCacheManager {
-  private cache: LRUCache<string, Frame>;
-  private inFlightRequests: Map<string, Promise<Frame>>;
-  private preloadQueue: { url: string; resolve: (frame: Frame) => void; reject: (reason?: any) => void; }[] = [];
-  private activePreloads = 0;
-  private concurrencyLimit = 4;
+  /** programName -> precomputed urls */
+  private programs = new Map<string, { sequence: SequenceConfig; urls: string[] }>();
 
-  constructor() {
-    this.cache = new LRUCache(options);
-    this.inFlightRequests = new Map();
-  }
+  /** pinned frames (never evicted) */
+  private pinned = new Map<string, Frame>();
+
+  /** LRU for non-pinned frames */
+  private lru = new LRUCache<string, Frame>({
+    max: 360,
+    ttl: 1000 * 60 * 10,
+  });
+
+  /** URLs that failed recently (avoid infinite retries) */
+  private failed = new LRUCache<string, true>({
+    max: 4000,
+    ttl: 1000 * 30,
+  });
+
+  /** Deduplicate loads */
+  private inFlight = new Map<string, Promise<Frame>>();
+
+  /** Simple subscription for UI redraw when new frames arrive */
+  private version = 0;
+  private listeners = new Set<() => void>();
+
+  /** Device-tuned options */
+  private concurrencyLimit = 6;
 
   /**
-   * Retrieves a frame from the cache. Returns undefined if not present.
+   * Configure cache limits based on device.
+   * Brands typically adapt using:
+   * - navigator.deviceMemory
+   * - network saveData / effectiveType
+   * - mobile breakpoint
    */
-  get(url: string): Frame | undefined {
-    return this.cache.get(url);
-  }
+  configureForDevice(isMobile: boolean) {
+    const deviceMemory = (navigator as any).deviceMemory as number | undefined;
+    const conn = (navigator as any).connection;
+    const saveData: boolean | undefined = conn?.saveData;
 
-  /**
-   * Loads a single frame. This method deduplicates requests for the same URL.
-   * If a request for a URL is already in flight, it returns the existing promise.
-   */
-  load(url: string, signal?: AbortSignal): Promise<Frame> {
-    // Return from cache if available
-    const cachedFrame = this.get(url);
-    if (cachedFrame) {
-      return Promise.resolve(cachedFrame);
-    }
+    // LRU max entries: tuned for "decoded images in memory"
+    // (Pinned frames are extra, and should be kept small.)
+    let max = 480;
 
-    // Return in-flight promise if available
-    if (this.inFlightRequests.has(url)) {
-      return this.inFlightRequests.get(url)!;
-    }
+    if (isMobile) max = 260;
+    if (deviceMemory && deviceMemory <= 2) max = isMobile ? 160 : 240;
+    if (saveData) max = Math.min(max, 180);
 
-    const promise = this._loadImage(url, signal).then((frame) => {
-      this.cache.set(url, frame);
-      this.inFlightRequests.delete(url);
-      return frame;
-    }).catch((err) => {
-      this.inFlightRequests.delete(url);
-      // Don't cache errors, just propagate them.
-      throw err;
+    // Concurrency: avoid decode/GC spikes on low-end
+    let conc = 6;
+    const cores = navigator.hardwareConcurrency || 4;
+    conc = Math.max(2, Math.min(10, Math.floor(cores / 2)));
+
+    if (isMobile) conc = Math.min(conc, 4);
+    if (deviceMemory && deviceMemory <= 2) conc = Math.min(conc, 3);
+    if (saveData) conc = Math.min(conc, 2);
+
+    this.lru = new LRUCache<string, Frame>({
+      max,
+      ttl: 1000 * 60 * 10,
     });
 
-    this.inFlightRequests.set(url, promise);
-    return promise;
-  }
-  
-  /**
-   * Preloads a set of URLs with a concurrency limit.
-   */
-  preload(urls: string[]): void {
-    for (const url of urls) {
-      // Only queue for preloading if it's not already cached or in-flight
-      if (!this.cache.has(url) && !this.inFlightRequests.has(url)) {
-        this.enqueuePreload(url);
-      }
-    }
-  }
-  
-  private enqueuePreload(url: string): void {
-     // Avoid adding duplicates to the queue
-    if (this.preloadQueue.some(item => item.url === url)) {
-        return;
-    }
-    
-    const promise = new Promise<Frame>((resolve, reject) => {
-      this.preloadQueue.push({ url, resolve, reject });
-    });
+    this.concurrencyLimit = conc;
 
-    this.inFlightRequests.set(url, promise);
-    this.processPreloadQueue();
+    // Keep pinned as-is (small hot windows)
+    this.bump();
   }
-  
-  private processPreloadQueue(): void {
-    while (this.activePreloads < this.concurrencyLimit && this.preloadQueue.length > 0) {
-      const item = this.preloadQueue.shift();
-      if (item) {
-        this.activePreloads++;
-        this._loadImage(item.url)
-          .then(frame => {
-            this.cache.set(item.url, frame);
-            item.resolve(frame);
-          })
-          .catch(err => {
-            item.reject(err);
-          })
-          .finally(() => {
-            this.activePreloads--;
-            // Since a slot is free, process next item
-            this.processPreloadQueue(); 
-          });
-      }
-    }
-  }
-
 
   /**
-   * Core image loading logic. Prefers createImageBitmap for performance.
+   * Initialize programs registry and precompute URLs.
+   * Must be called once at app start.
    */
-  private async _loadImage(url: string, signal?: AbortSignal): Promise<Frame> {
-    if (typeof window.createImageBitmap === 'function') {
+  init(programList: Program[]) {
+    this.programs.clear();
+
+    for (const p of programList) {
+      const urls: string[] = new Array(p.sequence.frameCount);
+      for (let i = 0; i < p.sequence.frameCount; i++) {
+        urls[i] = buildFrameUrl(p.sequence, i);
+      }
+      this.programs.set(p.name, { sequence: p.sequence, urls });
+    }
+
+    this.bump();
+  }
+
+  /**
+   * Subscribe to cache updates (frames arriving).
+   * Used by Hero to redraw even without scroll.
+   */
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
+
+  /**
+   * Version counter for useSyncExternalStore.
+   */
+  getVersion = () => this.version;
+
+  /**
+   * Notify UI that cache changed.
+   */
+  private bump() {
+    this.version++;
+    for (const l of this.listeners) l();
+  }
+
+  /**
+   * Get url for program/frame (0-based index).
+   */
+  private urlFor(programName: string, frameIndex0: number): string {
+    const entry = this.programs.get(programName);
+    if (!entry) throw new Error(`sequenceCache: program not initialized: ${programName}`);
+    const idx = Math.max(0, Math.min(entry.urls.length - 1, frameIndex0));
+    return entry.urls[idx];
+  }
+
+  /**
+   * Get a frame synchronously from cache (pinned first, then LRU).
+   */
+  getFrame(programName: string, frameIndex0: number): Frame | undefined {
+    const url = this.urlFor(programName, frameIndex0);
+    return this.pinned.get(url) ?? this.lru.get(url);
+  }
+
+  /**
+   * Check if frame exists in cache (pinned or LRU).
+   */
+  hasFrame(programName: string, frameIndex0: number): boolean {
+    const url = this.urlFor(programName, frameIndex0);
+    return this.pinned.has(url) || this.lru.has(url);
+  }
+
+  /**
+   * Pin a range of frames so they can NEVER be evicted.
+   * This guarantees instant switching and "no flashing".
+   *
+   * Keep this window small (e.g. 0..24) per program.
+   */
+  pinRange(programName: string, from0: number, to0: number) {
+    const entry = this.programs.get(programName);
+    if (!entry) return;
+
+    const from = Math.max(0, from0);
+    const to = Math.min(entry.urls.length - 1, to0);
+
+    for (let i = from; i <= to; i++) {
+      const url = entry.urls[i];
+      // If already in LRU, move it to pinned to protect it.
+      const existing = this.lru.get(url);
+      if (existing) {
+        this.lru.delete(url);
+        this.pinned.set(url, existing);
+      }
+    }
+
+    this.bump();
+  }
+
+  /**
+   * True if URL is being loaded.
+   */
+  isInFlightUrl(url: string) {
+    return this.inFlight.has(url);
+  }
+
+  /**
+   * Ensure a frame is loaded & cached.
+   * If the frame belongs to a pinned range, it will be stored in pinned.
+   */
+  ensureFrame(programName: string, frameIndex0: number, signal?: AbortSignal): Promise<Frame> {
+    const url = this.urlFor(programName, frameIndex0);
+
+    const pinned = this.pinned.get(url);
+    if (pinned) return Promise.resolve(pinned);
+
+    const cached = this.lru.get(url);
+    if (cached) return Promise.resolve(cached);
+
+    if (this.failed.has(url)) {
+      return Promise.reject(new Error(`sequenceCache: url previously failed: ${url}`));
+    }
+
+    const inflight = this.inFlight.get(url);
+    if (inflight) return inflight;
+
+    const p = this.loadImageElement(url, signal)
+      .then((img) => {
+        // Store in pinned if it is pinned OR if caller later pins it (we keep it simple:
+        // if already pinned by URL, store pinned; else LRU)
+        if (this.pinned.has(url)) this.pinned.set(url, img);
+        else this.lru.set(url, img);
+
+        this.inFlight.delete(url);
+        this.bump();
+        return img;
+      })
+      .catch((err) => {
+        this.inFlight.delete(url);
+        if (!(err instanceof DOMException && err.name === "AbortError")) this.failed.set(url, true);
+        throw err;
+      });
+
+    this.inFlight.set(url, p);
+    return p;
+  }
+
+  /**
+   * Preload around a frame (useful while scrolling).
+   */
+  preloadAround(programName: string, center0: number, ahead: number, behind: number) {
+    const entry = this.programs.get(programName);
+    if (!entry) return;
+
+    const from = Math.max(0, center0 - behind);
+    const to = Math.min(entry.urls.length - 1, center0 + ahead);
+
+    const urls: string[] = [];
+    for (let i = from; i <= to; i++) {
+      const url = entry.urls[i];
+      if (this.pinned.has(url) || this.lru.has(url) || this.inFlight.has(url) || this.failed.has(url)) continue;
+      urls.push(url);
+    }
+
+    if (!urls.length) return;
+    void this.preloadUrls(urls);
+  }
+
+  /**
+   * Preload ALL frames (decoded).
+   * Use with adaptive limits — pinned windows ensure UX even if LRU evicts older frames.
+   */
+  async preloadAll(opts: PreloadAllOptions) {
+    const { concurrency, signal, onProgress } = opts;
+
+    // Respect device cap
+    const conc = Math.max(1, Math.min(concurrency, this.concurrencyLimit));
+
+    const urls: string[] = [];
+    for (const [, entry] of this.programs) {
+      for (const url of entry.urls) {
+        if (this.pinned.has(url) || this.lru.has(url) || this.failed.has(url)) continue;
+        urls.push(url);
+      }
+    }
+
+    const total = urls.length;
+    if (total === 0) {
+      onProgress?.(100);
+      return;
+    }
+
+    let done = 0;
+    const bump = () => onProgress?.(Math.min(100, (done / total) * 100));
+
+    await this.asyncPool(conc, urls, async (url) => {
+      if (signal?.aborted) return;
+
       try {
-        const response = await fetch(url, { signal, mode: 'cors' });
-        if (!response.ok) {
-          throw new Error(`Failed to fetch image: ${response.statusText}`);
-        }
-        const blob = await response.blob();
-        return await createImageBitmap(blob);
-      } catch (error) {
-        console.error(`[SequenceCache] createImageBitmap failed for ${url}, falling back to HTMLImageElement.`, error);
-        return this._loadImageElement(url, signal);
+        // We do not know programName here, but pinned is URL-based:
+        // if URL exists in pinned set, it will be stored pinned.
+        await this.ensureUrl(url, signal);
+      } catch {
+        // ignore per-url failures
+      } finally {
+        done++;
+        bump();
       }
-    } else {
-      return this._loadImageElement(url, signal);
-    }
+    });
+
+    onProgress?.(100);
   }
 
   /**
-   * Fallback loader using HTMLImageElement.
+   * Ensure URL directly (internal).
+   * This is used by preloadAll which already has URLs.
    */
-  private _loadImageElement(url: string, signal?: AbortSignal): Promise<HTMLImageElement> {
+  private ensureUrl(url: string, signal?: AbortSignal): Promise<Frame> {
+    const pinned = this.pinned.get(url);
+    if (pinned) return Promise.resolve(pinned);
+
+    const cached = this.lru.get(url);
+    if (cached) return Promise.resolve(cached);
+
+    if (this.failed.has(url)) {
+      return Promise.reject(new Error(`sequenceCache: url previously failed: ${url}`));
+    }
+
+    const inflight = this.inFlight.get(url);
+    if (inflight) return inflight;
+
+    const p = this.loadImageElement(url, signal)
+      .then((img) => {
+        if (this.pinned.has(url)) this.pinned.set(url, img);
+        else this.lru.set(url, img);
+
+        this.inFlight.delete(url);
+        this.bump();
+        return img;
+      })
+      .catch((err) => {
+        this.inFlight.delete(url);
+        if (!(err instanceof DOMException && err.name === "AbortError")) this.failed.set(url, true);
+        throw err;
+      });
+
+    this.inFlight.set(url, p);
+    return p;
+  }
+
+  /**
+   * Internal helper: preload a list of URLs with concurrency limit.
+   */
+  private async preloadUrls(urls: string[]) {
+    const conc = Math.max(1, this.concurrencyLimit);
+    await this.asyncPool(conc, urls, async (url) => {
+      try {
+        await this.ensureUrl(url);
+      } catch {
+        // ignore
+      }
+    });
+  }
+
+  /**
+   * Concurrency pool.
+   */
+  private async asyncPool<T>(
+    limit: number,
+    items: T[],
+    worker: (item: T) => Promise<void>
+  ): Promise<void> {
+    const executing = new Set<Promise<void>>();
+
+    for (const item of items) {
+      const p = worker(item);
+      executing.add(p);
+
+      const cleanup = () => executing.delete(p);
+      p.then(cleanup).catch(cleanup);
+
+      if (executing.size >= limit) {
+        await Promise.race(executing);
+      }
+    }
+
+    await Promise.allSettled([...executing]);
+  }
+
+  /**
+   * Image loader using HTMLImageElement.
+   * No forced crossOrigin to avoid hard failures with missing CORS headers.
+   */
+  private loadImageElement(url: string, signal?: AbortSignal): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = "anonymous";
 
       const onAbort = () => {
-        img.src = ''; // Stop loading
-        reject(new DOMException('Aborted', 'AbortError'));
+        img.src = "";
+        reject(new DOMException("Aborted", "AbortError"));
       };
 
-      if (signal) {
-        signal.addEventListener('abort', onAbort, { once: true });
-      }
+      if (signal) signal.addEventListener("abort", onAbort, { once: true });
 
       img.onload = () => {
-        if (signal) signal.removeEventListener('abort', onAbort);
+        if (signal) signal.removeEventListener("abort", onAbort);
         resolve(img);
       };
 
-      img.onerror = (err) => {
-        if (signal) signal.removeEventListener('abort', onAbort);
-        reject(err);
+      img.onerror = (e) => {
+        if (signal) signal.removeEventListener("abort", onAbort);
+        reject(e);
       };
-      
+
       img.src = url;
     });
   }
 }
 
-// Export a singleton instance of the cache manager.
 export const sequenceCache = new SequenceCacheManager();
+
+/**
+ * DPR best practice:
+ * - Desktop: cap at 2
+ * - Mobile: cap tighter to reduce canvas fill + decode cost
+ */
+export function getAdaptiveDpr(isMobile: boolean): number {
+  const dpr = window.devicePixelRatio || 1;
+  if (!isMobile) return Math.min(2, dpr);
+
+  const deviceMemory = (navigator as any).deviceMemory as number | undefined;
+  if (deviceMemory && deviceMemory <= 2) return Math.min(1.25, dpr);
+
+  return Math.min(1.5, dpr);
+}
+
+/**
+ * Concurrency best practice:
+ * - Desktop: higher
+ * - Mobile: lower
+ * - saveData / low memory: lowest
+ */
+export function getAdaptiveConcurrency(isMobile: boolean): number {
+  const conn = (navigator as any).connection;
+  const saveData: boolean | undefined = conn?.saveData;
+  const effectiveType: string | undefined = conn?.effectiveType;
+
+  const deviceMemory = (navigator as any).deviceMemory as number | undefined;
+  const cores = navigator.hardwareConcurrency || 4;
+
+  let base = Math.max(2, Math.min(10, Math.floor(cores / 2)));
+
+  if (isMobile) base = Math.min(base, 4);
+  if (deviceMemory && deviceMemory <= 2) base = Math.min(base, 3);
+  if (saveData) base = Math.min(base, 2);
+  if (effectiveType === "2g" || effectiveType === "slow-2g") base = 1;
+
+  return Math.max(1, base);
+}
+
+export function initSequenceCache(programs: Program[]) {
+  sequenceCache.init(programs);
+}

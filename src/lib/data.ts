@@ -72,7 +72,7 @@ export const programs: Program[] = [
     ctas: { primary: "GET INVOLVED", secondary: "READ MORE" },
     sequence: {
       baseUrl: "https://xnuhligbmtlwrzemwgmv.supabase.co/storage/v1/object/public/socialAnimation/frame_",
-      frameCount: 160,
+      frameCount: 112,
       padLength: 6,
       fileExtension: ".webp",
     },

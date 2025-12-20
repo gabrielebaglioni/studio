@@ -14,7 +14,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { LoadingScreen } from "./loading-screen";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import {
   sequenceCache,
   initSequenceCache,
@@ -40,20 +45,15 @@ function raf() {
   return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 }
 
-/**
- * Scroll to the start of the hero (NOT page top).
- * This is what guarantees frame index starts at 0 when switching.
- */
 function getHeroAbsoluteTop(el: HTMLElement) {
-  // current scroll + element top in viewport
   return window.scrollY + el.getBoundingClientRect().top;
 }
 
-/**
- * Wait until hero is aligned at the top (best-effort).
- * This avoids: "I switch, unlock, and computeFrame snaps back to mid-scroll".
- */
-async function waitHeroAtStart(heroEl: HTMLElement, maxFrames = 16, tolerancePx = 2) {
+async function waitHeroAtStart(
+  heroEl: HTMLElement,
+  maxFrames = 16,
+  tolerancePx = 2
+) {
   for (let i = 0; i < maxFrames; i++) {
     const top = heroEl.getBoundingClientRect().top;
     if (Math.abs(top) <= tolerancePx) return;
@@ -77,6 +77,9 @@ export function HeroSection() {
   // UI state
   const [programIndex, setProgramIndex] = useState(0);
   const [isSwitching, setIsSwitching] = useState(false);
+
+  // Micro-motion pulse on switch
+  const [indexPulse, setIndexPulse] = useState(0);
 
   // Refs
   const heroRef = useRef<HTMLDivElement | null>(null);
@@ -119,7 +122,6 @@ export function HeroSection() {
     sequenceCache.configureForDevice(isMobile);
     initSequenceCache(programs);
 
-    // Pin hot windows so switch is always instant (no eviction)
     for (const p of programs) {
       const n =
         p.name === "CLIMATE"
@@ -229,7 +231,7 @@ export function HeroSection() {
   }, [drawAuto]);
 
   /**
-   * Mobile: keep a moving hot window warm (helps if LRU evicts).
+   * Mobile: keep a moving hot window warm
    */
   useEffect(() => {
     if (!bootReady || !isMobile) return;
@@ -249,12 +251,7 @@ export function HeroSection() {
   }, []);
 
   /**
-   * Definitive atomic switch:
-   * - lock frame0 (so computeFrame cannot pull mid-frame)
-   * - scroll to hero start (so even after unlock we compute from 0)
-   * - swap program
-   * - draw frame0 immediately for new program (no need to scroll)
-   * - unlock
+   * Atomic switch (no reverse, no wait-for-scroll).
    */
   const switchProgram = useCallback(
     async (dir: -1 | 1) => {
@@ -268,19 +265,18 @@ export function HeroSection() {
       setIsSwitching(true);
       freezeDrawRef.current = true;
 
-      // Force + lock frame0 immediately (prevents any mid-frame state)
+      // lock to frame 0 immediately
       forceFrame0Lock();
       setFrameImmediate(0);
 
-      // Ensure next frame0 is available (should be cached from boot, but bulletproof)
+      // ensure next frame0 exists
       const ensure0 = sequenceCache.ensureFrame(nextProgram.name, 0).catch(() => null);
 
-      // IMPORTANT: reset scroll to HERO start (not page top)
+      // reset to hero start
       scrollHeroToStart();
 
       const heroEl = heroRef.current;
       if (heroEl) {
-        // wait until the hero is really aligned to top (avoid snap-back to mid frame)
         await waitHeroAtStart(heroEl, 18, 2);
       } else {
         await raf();
@@ -289,20 +285,22 @@ export function HeroSection() {
 
       if (token !== switchTokenRef.current) return;
 
-      // Swap program
+      // commit program
       setProgramIndex(nextIndex);
 
-      // Wait React commit
+      // wait commit
       await raf();
-
       if (token !== switchTokenRef.current) return;
 
       await ensure0;
 
-      // Draw frame0 NOW of the new program (so switching does not depend on scroll)
+      // draw frame 0 NOW
       drawFrame(nextProgram.name, 0);
 
-      // Unfreeze + unlock only after frame0 draw
+      // pulse index
+      setIndexPulse((v) => v + 1);
+
+      // unlock only after draw
       freezeDrawRef.current = false;
       unlockAfterSwitch();
 
@@ -326,48 +324,60 @@ export function HeroSection() {
   if (!bootReady) return <LoadingScreen progress={bootProgress} />;
 
   return (
-    <div ref={heroRef} className="relative w-full" style={{ height: `${parallax.scrollVh}vh` }}>
+    <div
+      ref={heroRef}
+      className="relative w-full"
+      style={{ height: `${parallax.scrollVh}vh` }}
+    >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
-        <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+        <canvas
+          ref={canvasRef}
+          className="pointer-events-none absolute inset-0 h-full w-full"
+        />
         <div className="pointer-events-none absolute inset-0 bg-black/30" />
 
         <div className="container relative z-10 mx-auto flex h-full items-center px-4 text-white md:px-6">
           {/* Main content */}
-          <div
-            className={cn(
-              "max-w-xl space-y-4 transition-opacity duration-200",
-              isSwitching ? "opacity-0" : "opacity-100"
-            )}
-          >
-            <h1 className="font-headline text-6xl font-black uppercase tracking-tighter sm:text-7xl md:text-9xl">
-              {program.name}
-            </h1>
+          <div className="w-full max-w-xl">
+            <div
+              className={cn(
+                "space-y-4 transition-opacity duration-200",
+                isSwitching ? "opacity-0" : "opacity-100"
+              )}
+            >
+              <h1 className="font-headline text-5xl font-black uppercase tracking-tighter sm:text-6xl md:text-9xl">
+                {program.name}
+              </h1>
 
-            <p className="font-body text-lg font-light tracking-widest sm:text-xl md:text-2xl">
-              {program.subtitle}
-            </p>
+              <p className="font-body text-base font-light tracking-widest sm:text-lg md:text-2xl">
+                {program.subtitle}
+              </p>
 
-            <p className="max-w-md font-body text-sm sm:text-base md:text-lg">
-              {program.description}
-            </p>
+              <p className="max-w-md font-body text-sm sm:text-base md:text-lg">
+                {program.description}
+              </p>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full border-2 border-white bg-transparent text-white hover:bg-white hover:text-black"
-              >
-                {program.ctas.secondary}
-              </Button>
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full border-2 border-white bg-transparent text-white hover:bg-white hover:text-black"
+                >
+                  {program.ctas.secondary}
+                </Button>
 
-              <Button size="lg" className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90">
-                {program.ctas.primary}
-              </Button>
+                <Button
+                  size="lg"
+                  className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  {program.ctas.primary}
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Navigation */}
-          <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-4 md:right-10">
+          {/* DESKTOP NAV (right side) */}
+          <div className="absolute right-4 top-1/2 hidden -translate-y-1/2 items-center gap-4 md:flex md:right-10">
             <div className="relative text-center">
               <h2 className="font-headline text-6xl font-black sm:text-7xl md:text-9xl">
                 {(programIndex + 1).toString().padStart(2, "0")}
@@ -399,8 +409,72 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Social Icons */}
-          <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-6 sm:bottom-8">
+          {/* ✅ MOBILE: PREMIUM SWITCHER (NO BG, NO BORDERS) */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-20 z-20 md:hidden">
+            <div className="pointer-events-auto mx-auto w-full max-w-sm px-4">
+              {/* Row */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => void switchProgram(-1)}
+                  disabled={isSwitching}
+                  aria-label="Previous Program"
+                  className={cn(
+                    "group inline-flex min-h-[44px] items-center gap-2",
+                    "touch-manipulation select-none",
+                    "text-white/80 transition",
+                    "active:scale-[0.98] active:text-white",
+                    "disabled:opacity-40 disabled:active:scale-100"
+                  )}
+                >
+                  <ChevronLeft className="h-5 w-5 transition-transform group-active:-translate-x-0.5" />
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em]">
+                    Prev
+                  </span>
+                </button>
+
+                <div className="flex min-h-[44px] items-center justify-center px-3">
+                  <span
+                    key={indexPulse}
+                    className={cn(
+                      "font-headline text-3xl font-black tabular-nums",
+                      "text-white/90",
+                      "animate-[pulse_260ms_ease-out_1]"
+                    )}
+                  >
+                    {(programIndex + 1).toString().padStart(2, "0")}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => void switchProgram(1)}
+                  disabled={isSwitching}
+                  aria-label="Next Program"
+                  className={cn(
+                    "group inline-flex min-h-[44px] items-center gap-2",
+                    "touch-manipulation select-none",
+                    "text-white/80 transition",
+                    "active:scale-[0.98] active:text-white",
+                    "disabled:opacity-40 disabled:active:scale-100"
+                  )}
+                >
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em]">
+                    Next
+                  </span>
+                  <ChevronRight className="h-5 w-5 transition-transform group-active:translate-x-0.5" />
+                </button>
+              </div>
+
+              {/* Tiny label (no bg, no border) */}
+              <div className="mt-2 flex items-center justify-center">
+                <span className="text-[10px] font-medium tracking-[0.22em] text-white/55">
+                  PROGRAM SWITCHER
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Social Icons (below switcher) */}
+          <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-6 sm:bottom-8">
             {socialLinks.map(({ name, href, Icon }) => (
               <a key={name} href={href} aria-label={`QIA on ${name}`}>
                 <Icon className="h-6 w-6 transition-colors hover:text-accent" />

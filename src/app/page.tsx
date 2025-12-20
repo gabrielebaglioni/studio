@@ -21,19 +21,8 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <HeroSection />
-        <OurAgencySection />
-        <TogetherSection />
-        <ProgramsSection />
-        <PartnerFeatureSection />
-        <BecomePartnerSection />
-        <MissionVisionSection />
-        <ProjectLandSection />
-        <FoodSecuritySection />
-        <SocialImbalanceSection />
-        <GallerySection />
-        <PartnerFormSection />
       </main>
-      <Footer />
+
     </div>
   );
 }

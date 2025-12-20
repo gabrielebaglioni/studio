@@ -345,15 +345,15 @@ export function HeroSection() {
                 isSwitching ? "opacity-0" : "opacity-100"
               )}
             >
-              <h1 className="font-headline text-5xl font-black uppercase tracking-tighter sm:text-6xl md:text-9xl">
+              <h1 className="font-headline text-5xl font-black font-bold uppercase tracking-tighter sm:text-6xl md:text-9xl">
                 {program.name}
               </h1>
 
-              <p className="font-body text-base font-light tracking-widest sm:text-lg md:text-2xl">
+              <p className="font-body font-bold text-base font-light tracking-widest sm:text-lg md:text-2xl">
                 {program.subtitle}
               </p>
 
-              <p className="max-w-md font-body text-sm sm:text-base md:text-lg">
+              <p className="max-w-md font-bold font-body text-sm sm:text-base md:text-lg">
                 {program.description}
               </p>
 
@@ -427,7 +427,7 @@ export function HeroSection() {
                   )}
                 >
                   <ChevronLeft className="h-5 w-5 transition-transform group-active:-translate-x-0.5" />
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em]">
+                  <span className="text-xs font-bold uppercase tracking-[0.18em]">
                     Prev
                   </span>
                 </button>
@@ -457,19 +457,15 @@ export function HeroSection() {
                     "disabled:opacity-40 disabled:active:scale-100"
                   )}
                 >
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em]">
+                  <span className="text-xs font-bold uppercase tracking-[0.18em]">
                     Next
                   </span>
                   <ChevronRight className="h-5 w-5 transition-transform group-active:translate-x-0.5" />
                 </button>
               </div>
 
-              {/* Tiny label (no bg, no border) */}
-              <div className="mt-2 flex items-center justify-center">
-                <span className="text-[10px] font-medium tracking-[0.22em] text-white/55">
-                  PROGRAM SWITCHER
-                </span>
-              </div>
+             
+              
             </div>
           </div>
 

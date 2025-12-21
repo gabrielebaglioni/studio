@@ -14,12 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { LoadingScreen } from "./loading-screen";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import {
-  ChevronUp,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   sequenceCache,
   initSequenceCache,
@@ -27,71 +22,110 @@ import {
   getAdaptiveDpr,
 } from "@/lib/sequence/sequenceCache";
 
+/**
+ * UI timings
+ */
 const SWITCH_FADE_MS = 220;
 
+/**
+ * Each program can have a different parallax "feel".
+ */
 const PARALLAX = [
   { scrollVh: 260, easing: "easeOut" as const },
   { scrollVh: 300, easing: "linear" as const },
   { scrollVh: 340, easing: "easeInOut" as const },
 ];
 
+/**
+ * Frames that must NEVER be evicted (instant switching).
+ * (We pin a small range starting from frame 0)
+ */
 const PINNED_WINDOW = {
   CLIMATE: 26,
   FOOD: 32,
   SOCIAL: 40,
 } as const;
 
+/**
+ * ---------- Small helpers (SRP) ----------
+ */
+
+/** Wait N animation frames. */
 function raf() {
   return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 }
 
-function getHeroAbsoluteTop(el: HTMLElement) {
-  return window.scrollY + el.getBoundingClientRect().top;
+/**
+ * HARD reset to PAGE TOP (what you asked).
+ * - window.scrollTo(0,0) alone sometimes doesn't stick due to layout/sticky/paint timing.
+ * - We also set scrollTop on documentElement/body and repeat after 2 RAFs.
+ */
+async function scrollToPageTopHard() {
+  // 1) immediate attempt
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+
+  // 2) after paint/layout settles
+  await raf();
+  await raf();
+
+  // 3) final force
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
 }
 
-async function waitHeroAtStart(
-  heroEl: HTMLElement,
-  maxFrames = 16,
-  tolerancePx = 2
-) {
-  for (let i = 0; i < maxFrames; i++) {
-    const top = heroEl.getBoundingClientRect().top;
-    if (Math.abs(top) <= tolerancePx) return;
-    await raf();
-  }
-}
-
+/**
+ * Mobile hot-window sizes.
+ * Even with boot preload, this helps on low-RAM devices where LRU might evict.
+ */
 function windowForMobile(programName: string) {
   if (programName === "CLIMATE") return { ahead: 14, behind: 6 };
   if (programName === "FOOD") return { ahead: 20, behind: 8 };
   return { ahead: 26, behind: 10 };
 }
 
+/**
+ * ---------- Component ----------
+ */
 export function HeroSection() {
   const isMobile = useIsMobile();
 
-  // Boot preload state
+  /**
+   * Boot / preload state
+   */
   const [bootReady, setBootReady] = useState(false);
   const [bootProgress, setBootProgress] = useState(0);
 
-  // UI state
+  /**
+   * UI state
+   */
   const [programIndex, setProgramIndex] = useState(0);
   const [isSwitching, setIsSwitching] = useState(false);
 
-  // Micro-motion pulse on switch
+  /** Micro animation key for the "index pulse" */
   const [indexPulse, setIndexPulse] = useState(0);
 
-  // Refs
+  /**
+   * DOM refs
+   */
   const heroRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Freeze all auto draws during switch
+  /**
+   * Prevent any auto-draw while we do an atomic switch.
+   */
   const freezeDrawRef = useRef(false);
 
-  // Switch token to cancel outdated async switch operations
+  /**
+   * Cancels outdated async switch sequences (spam clicks).
+   */
   const switchTokenRef = useRef(0);
 
-  // Cache subscription: redraw when frames arrive
+  /**
+   * Cache subscription: when a frame arrives, we redraw without needing scroll.
+   */
   const cacheVersion = useSyncExternalStore(
     sequenceCache.subscribe,
     sequenceCache.getVersion,
@@ -101,11 +135,22 @@ export function HeroSection() {
   const program = programs[programIndex];
   const parallax = PARALLAX[programIndex % PARALLAX.length];
 
+  /**
+   * Device-tuned DPR for canvas.
+   */
   const dpr = useMemo(() => {
+    // keep SSR safe; this component is client-only but still fine
     if (typeof window === "undefined") return 1;
     return getAdaptiveDpr(isMobile);
   }, [isMobile]);
 
+  /**
+   * Scroll-driven frame index (your hook).
+   * We control the switch via:
+   * - forceFrame0Lock()
+   * - setFrameImmediate(0)
+   * - unlockAfterSwitch()
+   */
   const { currentFrame, setFrameImmediate, forceFrame0Lock, unlockAfterSwitch } =
     useScrollSequence({
       program,
@@ -114,14 +159,18 @@ export function HeroSection() {
     });
 
   /**
-   * BOOT: init + configure cache + pin hot windows + preload all
+   * ---------- BOOT: init cache + pin hot windows + preload all frames ----------
    */
   useEffect(() => {
     const abort = new AbortController();
 
+    // Configure memory/concurrency policies per device.
     sequenceCache.configureForDevice(isMobile);
+
+    // Register sequences and precompute URLs.
     initSequenceCache(programs);
 
+    // Pin critical window per program so switching is always instant.
     for (const p of programs) {
       const n =
         p.name === "CLIMATE"
@@ -160,7 +209,8 @@ export function HeroSection() {
   }, [isMobile]);
 
   /**
-   * Draw a specific frame explicitly (no stale closures).
+   * ---------- Canvas drawing (SRP) ----------
+   * Draw a specific program + frame index.
    */
   const drawFrame = useCallback(
     (programName: string, frameIndex0: number) => {
@@ -170,12 +220,14 @@ export function HeroSection() {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
+      // Pull decoded frame from cache (instant).
       const frame = sequenceCache.getFrame(programName, frameIndex0);
       if (!frame) return;
 
       const w = window.innerWidth;
       const h = window.innerHeight;
 
+      // DPR backing store
       const targetW = Math.floor(w * dpr);
       const targetH = Math.floor(h * dpr);
 
@@ -188,6 +240,7 @@ export function HeroSection() {
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+      // Cover-fit (like background-size: cover)
       const imgAspect = frame.width / frame.height;
       const canvasAspect = w / h;
 
@@ -212,7 +265,7 @@ export function HeroSection() {
   );
 
   /**
-   * Auto draw (only when not switching).
+   * Auto-draw current frame for current program.
    */
   const drawAuto = useCallback(() => {
     if (!bootReady) return;
@@ -220,10 +273,18 @@ export function HeroSection() {
     drawFrame(program.name, currentFrame);
   }, [bootReady, drawFrame, program.name, currentFrame]);
 
+  /**
+   * Redraw when:
+   * - frame index changes
+   * - cache receives new frames
+   */
   useEffect(() => {
     drawAuto();
   }, [drawAuto, cacheVersion]);
 
+  /**
+   * Redraw on resize.
+   */
   useEffect(() => {
     const onResize = () => drawAuto();
     window.addEventListener("resize", onResize);
@@ -231,7 +292,7 @@ export function HeroSection() {
   }, [drawAuto]);
 
   /**
-   * Mobile: keep a moving hot window warm
+   * Mobile: keep hot window warm around current frame.
    */
   useEffect(() => {
     if (!bootReady || !isMobile) return;
@@ -240,18 +301,11 @@ export function HeroSection() {
   }, [bootReady, isMobile, program.name, currentFrame]);
 
   /**
-   * Deterministic scroll reset: go to HERO start (not page top).
-   */
-  const scrollHeroToStart = useCallback(() => {
-    const el = heroRef.current;
-    if (!el) return;
-
-    const top = getHeroAbsoluteTop(el);
-    window.scrollTo({ top, behavior: "auto" });
-  }, []);
-
-  /**
-   * Atomic switch (no reverse, no wait-for-scroll).
+   * ---------- Atomic switch (SRP) ----------
+   * Goals:
+   * - ALWAYS jump to PAGE TOP (0)
+   * - NEVER show reverse or mid-frame flash
+   * - Frame 0 of the new program is drawn immediately (no need to scroll)
    */
   const switchProgram = useCallback(
     async (dir: -1 | 1) => {
@@ -259,48 +313,44 @@ export function HeroSection() {
 
       const token = ++switchTokenRef.current;
 
-      const nextIndex = (programIndex + dir + programs.length) % programs.length;
+      const nextIndex =
+        (programIndex + dir + programs.length) % programs.length;
       const nextProgram = programs[nextIndex];
 
       setIsSwitching(true);
       freezeDrawRef.current = true;
 
-      // lock to frame 0 immediately
+      // 1) Lock frame 0 immediately so the scroll hook can't emit mid-frame.
       forceFrame0Lock();
       setFrameImmediate(0);
 
-      // ensure next frame0 exists
-      const ensure0 = sequenceCache.ensureFrame(nextProgram.name, 0).catch(() => null);
+      // 2) Ensure next frame 0 exists (should already be in cache, but bulletproof).
+      const ensure0 = sequenceCache
+        .ensureFrame(nextProgram.name, 0)
+        .catch(() => null);
 
-      // reset to hero start
-      scrollHeroToStart();
-
-      const heroEl = heroRef.current;
-      if (heroEl) {
-        await waitHeroAtStart(heroEl, 18, 2);
-      } else {
-        await raf();
-        await raf();
-      }
+      // 3) HARD reset to PAGE TOP (0) and wait for paint settle.
+      await scrollToPageTopHard();
 
       if (token !== switchTokenRef.current) return;
 
-      // commit program
+      // 4) Commit the new program.
       setProgramIndex(nextIndex);
 
-      // wait commit
+      // 5) Wait React commit.
       await raf();
       if (token !== switchTokenRef.current) return;
 
+      // 6) Wait for frame0 (just in case).
       await ensure0;
 
-      // draw frame 0 NOW
+      // 7) Draw frame0 NOW (switch does not depend on scroll).
       drawFrame(nextProgram.name, 0);
 
-      // pulse index
+      // micro pulse on index
       setIndexPulse((v) => v + 1);
 
-      // unlock only after draw
+      // 8) Unlock only after frame0 has been drawn.
       freezeDrawRef.current = false;
       unlockAfterSwitch();
 
@@ -315,12 +365,14 @@ export function HeroSection() {
       programIndex,
       forceFrame0Lock,
       setFrameImmediate,
-      scrollHeroToStart,
       drawFrame,
       unlockAfterSwitch,
     ]
   );
 
+  /**
+   * ---------- Render ----------
+   */
   if (!bootReady) return <LoadingScreen progress={bootProgress} />;
 
   return (
@@ -345,15 +397,15 @@ export function HeroSection() {
                 isSwitching ? "opacity-0" : "opacity-100"
               )}
             >
-              <h1 className="font-headline text-5xl font-black font-bold uppercase tracking-tighter sm:text-6xl md:text-9xl">
+              <h1 className="font-headline text-5xl font-black uppercase tracking-tighter sm:text-6xl md:text-9xl">
                 {program.name}
               </h1>
 
-              <p className="font-body font-bold text-base font-light tracking-widest sm:text-lg md:text-2xl">
+              <p className="font-body text-base font-light tracking-widest sm:text-lg md:text-2xl">
                 {program.subtitle}
               </p>
 
-              <p className="max-w-md font-bold font-body text-sm sm:text-base md:text-lg">
+              <p className="max-w-md font-body text-sm sm:text-base md:text-lg">
                 {program.description}
               </p>
 
@@ -376,7 +428,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* DESKTOP NAV (right side) */}
+          {/* Desktop nav (right) */}
           <div className="absolute right-4 top-1/2 hidden -translate-y-1/2 items-center gap-4 md:flex md:right-10">
             <div className="relative text-center">
               <h2 className="font-headline text-6xl font-black sm:text-7xl md:text-9xl">
@@ -409,10 +461,9 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* ✅ MOBILE: PREMIUM SWITCHER (NO BG, NO BORDERS) */}
+          {/* Mobile switcher (no bg, no borders) */}
           <div className="pointer-events-none absolute inset-x-0 bottom-20 z-20 md:hidden">
             <div className="pointer-events-auto mx-auto w-full max-w-sm px-4">
-              {/* Row */}
               <div className="flex items-center justify-between">
                 <button
                   onClick={() => void switchProgram(-1)}
@@ -463,13 +514,10 @@ export function HeroSection() {
                   <ChevronRight className="h-5 w-5 transition-transform group-active:translate-x-0.5" />
                 </button>
               </div>
-
-             
-              
             </div>
           </div>
 
-          {/* Social Icons (below switcher) */}
+          {/* Social Icons */}
           <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-6 sm:bottom-8">
             {socialLinks.map(({ name, href, Icon }) => (
               <a key={name} href={href} aria-label={`QIA on ${name}`}>

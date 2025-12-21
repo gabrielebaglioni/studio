@@ -1,18 +1,6 @@
 import { Header } from '@/components/header';
 import { HeroSection } from '@/components/hero-section';
-import {
-  OurAgencySection,
-  TogetherSection,
-  ProgramsSection,
-  PartnerFeatureSection,
-  BecomePartnerSection,
-  MissionVisionSection,
-  ProjectLandSection,
-  FoodSecuritySection,
-  SocialImbalanceSection,
-  GallerySection,
-  PartnerFormSection,
-} from '@/components/sections';
+
 import { Footer } from '@/components/footer';
 
 export default function Home() {
@@ -22,7 +10,6 @@ export default function Home() {
       <main className="flex-1">
         <HeroSection />
       </main>
-
     </div>
   );
 }

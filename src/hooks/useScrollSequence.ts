@@ -23,15 +23,55 @@ function ease(mode: EasingMode, t: number) {
 }
 
 /**
+ * Best practice: Use Intersection Observer to detect when element is in viewport
+ * This reduces unnecessary scroll calculations when element is off-screen
+ */
+function useIntersectionObserver(
+  elementRef: RefObject<HTMLElement | null>,
+  callback: (isIntersecting: boolean) => void,
+  options?: IntersectionObserverInit
+) {
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        callback(entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: "50%", // Start calculations slightly before element enters viewport
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+        ...options,
+      }
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [elementRef, callback, options]);
+}
+
+/**
  * Scroll-driven frame index with a "switch lock".
  * During program switching we:
  * - lock to frame 0
  * - force state immediately
  * - unlock only when Hero is ready
+ * 
+ * Best practices implemented:
+ * - Intersection Observer for viewport detection (performance)
+ * - RAF throttling for scroll events (smooth animations)
+ * - Passive event listeners (better scroll performance)
+ * - Early returns when element is off-screen
  */
 export function useScrollSequence({ program, heroRef, easing = "linear" }: UseScrollSequenceProps) {
   const [currentFrame, setCurrentFrame] = useState(0);
   const currentFrameRef = useRef(0);
+  const [isInViewport, setIsInViewport] = useState(true);
 
   const lockFrame0Ref = useRef(false);
 
@@ -60,6 +100,7 @@ export function useScrollSequence({ program, heroRef, easing = "linear" }: UseSc
 
   /**
    * Compute frame based on scroll position inside hero.
+   * Optimized with early returns and viewport detection.
    */
   const computeFrameIndex = useCallback(() => {
     const el = heroRef.current;
@@ -70,9 +111,13 @@ export function useScrollSequence({ program, heroRef, easing = "linear" }: UseSc
       return;
     }
 
+    // Early return if element is not in viewport (performance optimization)
+    if (!isInViewport) return;
+
     const { top, height } = el.getBoundingClientRect();
     const scrollable = Math.max(1, height - window.innerHeight);
 
+    // Early return if element is completely off-screen
     if (top > window.innerHeight || top + height < 0) return;
 
     const distance = clamp(-top, 0, scrollable);
@@ -84,24 +129,46 @@ export function useScrollSequence({ program, heroRef, easing = "linear" }: UseSc
     if (next !== currentFrameRef.current) {
       setFrameImmediate(next);
     }
-  }, [heroRef, program, easing, setFrameImmediate]);
+  }, [heroRef, program, easing, setFrameImmediate, isInViewport]);
 
   /**
-   * RAF-throttled scroll listener.
+   * Use Intersection Observer to detect when hero section is in viewport.
+   * This prevents unnecessary scroll calculations when off-screen.
+   */
+  useIntersectionObserver(heroRef, setIsInViewport, {
+    rootMargin: "50%", // Start calculations slightly before element enters
+  });
+
+  /**
+   * RAF-throttled scroll listener with passive event listener for better performance.
+   * Best practice: Use passive listeners to improve scroll performance.
    */
   useEffect(() => {
     let raf = 0;
+    let ticking = false;
 
     const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(computeFrameIndex);
+      if (!ticking) {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          computeFrameIndex();
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
+    // Use passive listener for better scroll performance
     window.addEventListener("scroll", onScroll, { passive: true });
+    // Also listen to resize events for responsive behavior
+    window.addEventListener("resize", onScroll, { passive: true });
+    
+    // Initial calculation
     onScroll();
 
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(raf);
     };
   }, [computeFrameIndex]);

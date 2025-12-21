@@ -49,7 +49,24 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    /* Smooth scroll is handled by useSmoothScroll hook for better control */
+    scroll-behavior: auto;
+    /* Enable momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Best practice: Optimize parallax performance with GPU acceleration */
+  .parallax-container {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Optimize canvas rendering for parallax effects */
+  canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
   }
 }
 

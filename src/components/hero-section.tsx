@@ -29,12 +29,19 @@ const SWITCH_FADE_MS = 220;
 
 /**
  * Each program can have a different parallax "feel".
+ * Best practice: Different scroll heights and easing functions for visual variety.
+ * Optimized for performance with modern CSS and JavaScript.
+ * 
+ * Three distinct parallax effects:
+ * 1. easeOut (260vh) - Smooth, elegant deceleration
+ * 2. linear (300vh) - Consistent, predictable motion
+ * 3. easeInOut (340vh) - Dynamic acceleration and deceleration
  */
 const PARALLAX = [
   { scrollVh: 260, easing: "easeOut" as const },
   { scrollVh: 300, easing: "linear" as const },
   { scrollVh: 340, easing: "easeInOut" as const },
-];
+] as const;
 
 /**
  * Frames that must NEVER be evicted (instant switching).
@@ -145,17 +152,20 @@ export function HeroSection() {
   }, [isMobile]);
 
   /**
-   * Scroll-driven frame index (your hook).
+   * Scroll-driven frame index (optimized hook with Intersection Observer).
    * We control the switch via:
    * - forceFrame0Lock()
    * - setFrameImmediate(0)
    * - unlockAfterSwitch()
+   * 
+   * Best practice: Use memoized easing to prevent hook re-creation
    */
+  const easingMode = useMemo(() => parallax.easing, [parallax.easing]);
   const { currentFrame, setFrameImmediate, forceFrame0Lock, unlockAfterSwitch } =
     useScrollSequence({
       program,
       heroRef,
-      easing: parallax.easing,
+      easing: easingMode,
     });
 
   /**
@@ -378,13 +388,20 @@ export function HeroSection() {
   return (
     <div
       ref={heroRef}
-      className="relative w-full"
-      style={{ height: `${parallax.scrollVh}vh` }}
+      className="relative w-full parallax-container"
+      style={{ 
+        height: `${parallax.scrollVh}vh`,
+      }}
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <canvas
           ref={canvasRef}
           className="pointer-events-none absolute inset-0 h-full w-full"
+          // Best practice: Optimize canvas rendering for parallax animations
+          style={{ 
+            willChange: 'contents',
+            imageRendering: 'auto',
+          }}
         />
         <div className="pointer-events-none absolute inset-0 bg-black/30" />
 

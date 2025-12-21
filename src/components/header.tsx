@@ -53,7 +53,6 @@ export function Header() {
           : "bg-background/80 backdrop-blur-sm"
       )}
       style={{
-        borderBottom: scrolled ? `1px solid ${colors.primary}20` : 'none',
         boxShadow: scrolled ? `0 4px 6px -1px ${colors.primary}10` : undefined,
       }}
     >

@@ -250,25 +250,33 @@ export function HeroSection() {
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Cover-fit (like background-size: cover)
+      // Cover-fit with zoom to ensure full coverage (no green borders)
+      // Apply a slight zoom factor (1.05) to ensure frame always covers entire canvas
+      const zoomFactor = 1.05;
       const imgAspect = frame.width / frame.height;
       const canvasAspect = w / h;
 
       let rw: number, rh: number, x: number, y: number;
 
       if (imgAspect > canvasAspect) {
-        rh = h;
+        // Image is wider - scale to cover height with zoom, extend beyond width
+        rh = h * zoomFactor;
         rw = rh * imgAspect;
         x = (w - rw) / 2;
-        y = 0;
+        y = (h - rh) / 2;
       } else {
-        rw = w;
+        // Image is taller - scale to cover width with zoom, extend beyond height
+        rw = w * zoomFactor;
         rh = rw / imgAspect;
-        x = 0;
+        x = (w - rw) / 2;
         y = (h - rh) / 2;
       }
 
-      ctx.clearRect(0, 0, w, h);
+      // Fill entire canvas with background color first (prevents any visible margins)
+      ctx.fillStyle = 'hsl(175, 85%, 9%)';
+      ctx.fillRect(0, 0, w, h);
+      
+      // Draw the frame with zoom to ensure complete coverage
       ctx.drawImage(frame, x, y, rw, rh);
     },
     [dpr]
@@ -398,9 +406,10 @@ export function HeroSection() {
           ref={canvasRef}
           className="pointer-events-none absolute inset-0 h-full w-full"
           // Best practice: Optimize canvas rendering for parallax animations
-          style={{ 
+          style={{
             willChange: 'contents',
             imageRendering: 'auto',
+            backgroundColor: 'hsl(175, 85%, 9%)', // Anchor Green background to prevent margins
           }}
         />
         <div className="pointer-events-none absolute inset-0 bg-black/30" />
@@ -430,14 +439,14 @@ export function HeroSection() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-full border-2 border-white bg-transparent text-white hover:bg-white hover:text-black"
+                  className="rounded-full border-2 border-white/80 bg-transparent/10 backdrop-blur-sm text-white hover:bg-white hover:text-primary hover:border-white transition-all"
                 >
                   {program.ctas.secondary}
                 </Button>
 
                 <Button
                   size="lg"
-                  className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90"
+                  className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all"
                 >
                   {program.ctas.primary}
                 </Button>

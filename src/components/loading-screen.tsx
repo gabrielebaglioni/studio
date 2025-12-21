@@ -44,7 +44,7 @@ export function LoadingScreen({ progress }: LoadingScreenProps) {
 
         <div className="w-64">
           <Progress value={display} className="h-2" />
-          <p className="mt-2 text-sm text-muted-foreground">Loading {Math.round(display)}%</p>
+          <p className="mt-2 text-sm font-medium text-foreground">Loading {Math.round(display)}%</p>
         </div>
       </div>
     </div>

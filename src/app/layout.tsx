@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { SmoothScrollProvider } from '@/components/smooth-scroll-provider';
+import { HeroProvider } from '@/contexts/hero-context';
 
 export const metadata: Metadata = {
   title: 'QIA Impact Engine',
@@ -23,17 +23,12 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <HeroProvider>
           <SmoothScrollProvider>
             {children}
           </SmoothScrollProvider>
-          <Toaster />
-        </ThemeProvider>
+        </HeroProvider>
+        <Toaster />
       </body>
     </html>
   );

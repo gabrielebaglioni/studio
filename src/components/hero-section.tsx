@@ -15,6 +15,7 @@ import { LoadingScreen } from "./loading-screen";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useHero } from "@/contexts/hero-context";
 import {
   sequenceCache,
   initSequenceCache,
@@ -98,6 +99,7 @@ function windowForMobile(programName: string) {
  */
 export function HeroSection() {
   const isMobile = useIsMobile();
+  const { setActiveHero } = useHero();
 
   /**
    * Boot / preload state
@@ -141,6 +143,33 @@ export function HeroSection() {
 
   const program = programs[programIndex];
   const parallax = PARALLAX[programIndex % PARALLAX.length];
+
+  /**
+   * Color variants for each hero section based on brand colors
+   * Must be before any conditional returns to follow Rules of Hooks
+   */
+  const heroColors = useMemo(() => {
+    const colors = {
+      CLIMATE: {
+        primary: '#10B2D7', // Pacific Cyan
+        accent: '#175F8F',   // Crayola
+      },
+      FOOD: {
+        primary: '#BFD380', // Mindaro
+        accent: '#9DEE00',  // Spring Bud
+      },
+      SOCIAL: {
+        primary: '#9DEE00', // Spring Bud
+        accent: '#10B2D7',  // Pacific Cyan
+      },
+    };
+    return colors[program.name as keyof typeof colors] || colors.CLIMATE;
+  }, [program.name]);
+
+  // Update active hero in context when program changes
+  useEffect(() => {
+    setActiveHero(program.name as 'CLIMATE' | 'FOOD' | 'SOCIAL');
+  }, [program.name, setActiveHero]);
 
   /**
    * Device-tuned DPR for canvas.
@@ -439,14 +468,39 @@ export function HeroSection() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-full border-2 border-white/80 bg-transparent/10 backdrop-blur-sm text-white hover:bg-white hover:text-primary hover:border-white transition-all"
+                  className="rounded-full border-2 bg-transparent/10 backdrop-blur-sm text-white transition-all"
+                  style={{
+                    borderColor: `${heroColors.primary}80`,
+                    color: 'white',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = heroColors.primary;
+                    e.currentTarget.style.color = '#022D2B';
+                    e.currentTarget.style.borderColor = heroColors.primary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.borderColor = `${heroColors.primary}80`;
+                  }}
                 >
                   {program.ctas.secondary}
                 </Button>
 
                 <Button
                   size="lg"
-                  className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all"
+                  className="rounded-full text-white transition-all"
+                  style={{
+                    backgroundColor: heroColors.accent,
+                    color: '#022D2B',
+                    boxShadow: `0 10px 15px -3px ${heroColors.accent}40`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.9';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
                 >
                   {program.ctas.primary}
                 </Button>

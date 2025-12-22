@@ -1,10 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 import { agencyConfig } from '@/lib/data';
 import { Logo } from '@/components/logo';
-import { cn } from '@/lib/utils';
 import { useHero } from '@/contexts/hero-context';
 
 /**
@@ -30,31 +28,12 @@ const HERO_COLORS = {
 } as const;
 
 export function Header() {
-  const [scrolled, setScrolled] = useState(false);
   const { activeHero } = useHero();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const colors = HERO_COLORS[activeHero];
 
   return (
     <header 
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-500",
-        scrolled 
-          ? "bg-background/95 backdrop-blur-md shadow-lg" 
-          : "bg-background/80 backdrop-blur-sm"
-      )}
-      style={{
-        boxShadow: scrolled ? `0 4px 6px -1px ${colors.primary}10` : undefined,
-      }}
+      className="fixed top-0 left-0 right-0 z-50 w-full"
     >
       <div className="w-full flex h-20 items-center justify-center px-4 md:px-6 lg:px-8">
         {/* Logo and Brand Name - Centered */}

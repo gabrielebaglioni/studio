@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
 
 type HeroName = 'CLIMATE' | 'FOOD' | 'SOCIAL';
 
@@ -11,11 +11,29 @@ interface HeroContextType {
 
 const HeroContext = createContext<HeroContextType | undefined>(undefined);
 
+/**
+ * HeroProvider with optimized context value
+ * Best practice: Memoize context value to prevent unnecessary re-renders
+ */
 export function HeroProvider({ children }: { children: ReactNode }) {
-  const [activeHero, setActiveHero] = useState<HeroName>('CLIMATE');
+  const [activeHero, setActiveHeroState] = useState<HeroName>('CLIMATE');
+
+  // Memoize setActiveHero to prevent context value recreation
+  const setActiveHero = useCallback((hero: HeroName) => {
+    setActiveHeroState(hero);
+  }, []);
+
+  // Memoize context value to prevent unnecessary re-renders of consumers
+  const contextValue = useMemo(
+    () => ({
+      activeHero,
+      setActiveHero,
+    }),
+    [activeHero, setActiveHero]
+  );
 
   return (
-    <HeroContext.Provider value={{ activeHero, setActiveHero }}>
+    <HeroContext.Provider value={contextValue}>
       {children}
     </HeroContext.Provider>
   );

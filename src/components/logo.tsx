@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from 'react';
 import Image from 'next/image';
 import { useHero } from '@/contexts/hero-context';
 
@@ -16,10 +17,16 @@ const LOGO_MAP = {
 /**
  * Quick Impact Agency Logo Component
  * Logo changes color based on active hero section
+ * Memoized for performance - only re-renders when activeHero changes
  */
-export function Logo({ className }: { className?: string }) {
+export const Logo = memo(function Logo({ className }: { className?: string }) {
   const { activeHero } = useHero();
-  const logoPath = LOGO_MAP[activeHero] || LOGO_MAP.CLIMATE;
+  
+  // Memoize logo path to prevent recalculation
+  const logoPath = useMemo(
+    () => LOGO_MAP[activeHero] || LOGO_MAP.CLIMATE,
+    [activeHero]
+  );
 
   return (
     <div 
@@ -44,4 +51,4 @@ export function Logo({ className }: { className?: string }) {
       </div>
     </div>
   );
-}
+});

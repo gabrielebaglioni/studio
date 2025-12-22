@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from 'react';
 import Link from 'next/link';
 import { agencyConfig } from '@/lib/data';
 import { Logo } from '@/components/logo';
@@ -27,9 +28,15 @@ const HERO_COLORS = {
   },
 } as const;
 
-export function Header() {
+/**
+ * Header component - memoized for performance
+ * Only re-renders when activeHero changes
+ */
+export const Header = memo(function Header() {
   const { activeHero } = useHero();
-  const colors = HERO_COLORS[activeHero];
+  
+  // Memoize colors to prevent recalculation on every render
+  const colors = useMemo(() => HERO_COLORS[activeHero], [activeHero]);
 
   return (
     <header 
@@ -52,4 +59,4 @@ export function Header() {
       </div>
     </header>
   );
-}
+});

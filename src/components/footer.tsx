@@ -1,7 +1,12 @@
+import { memo } from 'react';
 import Link from 'next/link';
 import { agencyConfig, socialLinks } from '@/lib/data';
 
-export function Footer() {
+/**
+ * Footer component - memoized for performance
+ * Only re-renders when props change (none in this case)
+ */
+export const Footer = memo(function Footer() {
   return (
     <footer className="bg-muted text-muted-foreground">
       <div className="container mx-auto px-4 py-8 md:px-6">
@@ -29,4 +34,4 @@ export function Footer() {
       </div>
     </footer>
   );
-}
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState, useMemo } from "react";
 import Image from "next/image";
 import { Progress } from "@/components/ui/progress";
 
@@ -11,10 +11,14 @@ interface LoadingScreenProps {
 /**
  * Smooth display progress so it doesn't jump.
  * The real progress is controlled by preloadAll().
+ * Memoized for performance - only re-renders when progress changes
  */
-export function LoadingScreen({ progress }: LoadingScreenProps) {
+export const LoadingScreen = memo(function LoadingScreen({ progress }: LoadingScreenProps) {
   const [display, setDisplay] = useState(0);
   const rafRef = useRef<number | null>(null);
+
+  // Memoize rounded display value to prevent unnecessary recalculations
+  const roundedDisplay = useMemo(() => Math.round(display), [display]);
 
   useEffect(() => {
     const target = Math.max(0, Math.min(100, progress));
@@ -61,9 +65,9 @@ export function LoadingScreen({ progress }: LoadingScreenProps) {
 
         <div className="w-64">
           <Progress value={display} className="h-2" />
-          <p className="mt-2 text-sm font-medium text-foreground">Loading {Math.round(display)}%</p>
+          <p className="mt-2 text-sm font-medium text-foreground">Loading {roundedDisplay}%</p>
         </div>
       </div>
     </div>
   );
-}
+});

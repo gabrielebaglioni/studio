@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { SmoothScrollProvider } from '@/components/smooth-scroll-provider';
 import { HeroProvider } from '@/contexts/hero-context';
+import { GoogleAnalyticsComponent } from '@/components/analytics/google-analytics';
 
 export const metadata: Metadata = {
   title: 'QIA Impact Engine',
@@ -29,6 +30,7 @@ export default function RootLayout({
           </SmoothScrollProvider>
         </HeroProvider>
         <Toaster />
+        <GoogleAnalyticsComponent />
       </body>
     </html>
   );

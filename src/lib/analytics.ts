@@ -32,6 +32,17 @@ export function trackEvent(
 }
 
 /**
+ * Track page views
+ */
+export function trackPageView(url: string): void {
+  if (typeof window === 'undefined' || !window.gtag) return;
+
+  window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || '', {
+    page_path: url,
+  });
+}
+
+/**
  * Track program switch events
  */
 export function trackProgramSwitch(programName: string): void {
@@ -43,5 +54,12 @@ export function trackProgramSwitch(programName: string): void {
  */
 export function trackButtonClick(buttonLabel: string, location: string): void {
   trackEvent('button_click', 'engagement', `${location}_${buttonLabel}`);
+}
+
+/**
+ * Track scroll depth
+ */
+export function trackScrollDepth(depth: number): void {
+  trackEvent('scroll_depth', 'engagement', undefined, depth);
 }
 

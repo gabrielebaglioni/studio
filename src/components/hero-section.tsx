@@ -32,6 +32,9 @@ import { HeroCanvas } from './hero-section/hero-canvas';
 import { HeroContent } from './hero-section/hero-content';
 import { HeroNavigation } from './hero-section/hero-navigation';
 import { SocialLinks } from './hero-section/social-links';
+import { Button } from './ui/button';
+import { trackButtonClick } from '@/lib/analytics';
+import { cn } from '@/lib/utils';
 
 export function HeroSection() {
   const { setActiveHero } = useHero();
@@ -141,21 +144,121 @@ export function HeroSection() {
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <HeroCanvas canvasRef={canvasRef} />
 
-        <div className="container relative z-10 mx-auto flex h-full items-center px-4 text-white md:px-6">
-          <HeroContent
-            program={program}
-            heroColors={heroColors}
-            isSwitching={isSwitching}
-          />
+        {/* Responsive Layout: Mobile-first with Tailwind breakpoints (sm, md, lg, xl) */}
+        <div className="relative z-10 h-full w-full text-white">
+          {/* Mobile & Tablet Layout (< md): Vertical stack - Header → Text → Canvas → Switcher + Buttons */}
+          {/* Using md:hidden to hide on desktop (>= 768px) */}
+          <div className="flex h-full flex-col gap-4 overflow-hidden md:hidden sm:gap-6">
+            {/* Section 1: Project Title and Description */}
+            {/* Header is fixed (h-20 = 80px), using pt-20 to account for header overlay */}
+            {/* Responsive padding: more space on tablet (600px-959px) to prevent text overlap with canvas frames */}
+            {/* pb-6 on mobile, pb-8 on sm (640px+), pb-12 on md (768px+) to ensure no overlap */}
+            <section className="flex-shrink-0 pt-20 pb-6 px-4 sm:px-6 sm:pb-8 md:pb-12">
+              <div
+                className={cn(
+                  'space-y-2 transition-opacity duration-200',
+                  isSwitching ? 'opacity-0' : 'opacity-100'
+                )}
+              >
+                <h1 className="font-headline text-3xl font-black uppercase tracking-tighter leading-tight sm:text-4xl">
+                  {program.name}
+                </h1>
+                <p className="font-body text-xs font-light tracking-widest sm:text-sm">
+                  {program.subtitle}
+                </p>
+                <p className="font-body text-xs leading-relaxed sm:text-sm">
+                  {program.description}
+                </p>
+              </div>
+            </section>
 
-          <HeroNavigation
-            programIndex={programIndex}
-            isSwitching={isSwitching}
-            indexPulse={indexPulse}
-            onSwitch={switchProgram}
-          />
+            {/* Section 2: Canvas Area - matches frame dimensions exactly */}
+            {/* Canvas is absolute positioned, this spacer defines the exact frame area for inspection */}
+            {/* mt-auto ensures proper spacing from text above on mobile/tablet */}
+            <section className="flex-1 min-h-0 w-full" aria-label="Canvas frame area" />
 
-          <SocialLinks />
+            {/* Section 3: Navigation Switcher, Action Buttons, and Social Links */}
+            <section className="flex-shrink-0 px-4 pb-4 space-y-3 sm:px-6 sm:pb-6">
+              {/* Navigation Switcher */}
+              <div
+                className={cn(
+                  'transition-opacity duration-200',
+                  isSwitching ? 'opacity-0' : 'opacity-100'
+                )}
+              >
+                <HeroNavigation
+                  programIndex={programIndex}
+                  isSwitching={isSwitching}
+                  indexPulse={indexPulse}
+                  onSwitch={switchProgram}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div
+                className={cn(
+                  'flex flex-col gap-2 transition-opacity duration-200 sm:gap-3',
+                  isSwitching ? 'opacity-0' : 'opacity-100'
+                )}
+              >
+                <Button
+                  size="default"
+                  variant="outline"
+                  className="rounded-full border-2 bg-transparent/10 backdrop-blur-sm text-white transition-all text-xs py-1.5 h-auto sm:text-sm sm:py-2"
+                  style={{
+                    borderColor: `${heroColors.primary}80`,
+                    color: 'white',
+                  }}
+                  onClick={() => trackButtonClick(program.ctas.secondary, 'hero')}
+                >
+                  {program.ctas.secondary}
+                </Button>
+
+                <Button
+                  size="default"
+                  className="rounded-full text-white transition-all text-xs py-1.5 h-auto sm:text-sm sm:py-2"
+                  style={{
+                    backgroundColor: heroColors.accent,
+                    color: '#022D2B',
+                    boxShadow: `0 10px 15px -3px ${heroColors.accent}40`,
+                  }}
+                  onClick={() => trackButtonClick(program.ctas.primary, 'hero')}
+                >
+                  {program.ctas.primary}
+                </Button>
+              </div>
+
+              {/* Social Links - Mobile/Tablet: in flow */}
+              <div
+                className={cn(
+                  'transition-opacity duration-200',
+                  isSwitching ? 'opacity-0' : 'opacity-100'
+                )}
+              >
+                <SocialLinks />
+              </div>
+            </section>
+          </div>
+
+          {/* Desktop Layout (>= md): Horizontal layout - UNCHANGED from original */}
+          {/* Using hidden md:flex to show only on desktop (>= 768px) */}
+          <div className="container relative z-10 mx-auto hidden h-full items-center px-4 md:flex md:px-6">
+            <HeroContent
+              program={program}
+              heroColors={heroColors}
+              isSwitching={isSwitching}
+            />
+
+            <HeroNavigation
+              programIndex={programIndex}
+              isSwitching={isSwitching}
+              indexPulse={indexPulse}
+              onSwitch={switchProgram}
+            />
+
+            {/* Social Links - Desktop: absolute positioned at bottom */}
+            <SocialLinks />
+          </div>
         </div>
       </div>
     </div>

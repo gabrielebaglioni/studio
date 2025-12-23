@@ -51,9 +51,9 @@ export function useCanvasRenderer(options: UseCanvasRendererOptions) {
       const viewportHeight = window.innerHeight;
       const dimensions = calculateCanvasDimensions(viewportWidth, viewportHeight, dpr);
 
-      drawFrameOnCanvas(ctx, frame, dimensions.width, dimensions.height, dpr);
+      drawFrameOnCanvas(ctx, frame, dimensions.width, dimensions.height, dpr, isMobile);
     },
-    [canvasRef, dpr]
+    [canvasRef, dpr, isMobile]
   );
 
   // Auto-draw current frame

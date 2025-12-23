@@ -26,10 +26,10 @@ export default function RootLayout({
       <body className="font-body antialiased" suppressHydrationWarning>
         <HeroProvider>
           <SmoothScrollProvider>
-            {children}
+          {children}
           </SmoothScrollProvider>
         </HeroProvider>
-        <Toaster />
+          <Toaster />
         <GoogleAnalyticsComponent />
       </body>
     </html>

@@ -31,19 +31,34 @@ export const HeroContent = memo(function HeroContent({
           isSwitching ? 'opacity-0' : 'opacity-100'
         )}
       >
-        <h1 className="font-headline text-5xl font-black uppercase tracking-tighter sm:text-6xl md:text-9xl">
-          {program.name}
-        </h1>
+        {/* Mobile: Text above, Desktop: Text on left */}
+        <div className="md:hidden space-y-4 mb-4">
+          <h1 className="font-headline text-5xl font-black uppercase tracking-tighter">
+            {program.name}
+          </h1>
+          <p className="font-body text-base font-light tracking-widest">
+            {program.subtitle}
+          </p>
+          <p className="font-body text-sm">
+            {program.description}
+          </p>
+        </div>
 
-        <p className="font-body text-base font-light tracking-widest sm:text-lg md:text-2xl">
-          {program.subtitle}
-        </p>
+        {/* Desktop: Text visible */}
+        <div className="hidden md:block space-y-4">
+          <h1 className="font-headline text-5xl font-black uppercase tracking-tighter sm:text-6xl md:text-9xl">
+            {program.name}
+          </h1>
+          <p className="font-body text-base font-light tracking-widest sm:text-lg md:text-2xl">
+            {program.subtitle}
+          </p>
+          <p className="max-w-md font-body text-sm sm:text-base md:text-lg">
+            {program.description}
+          </p>
+        </div>
 
-        <p className="max-w-md font-body text-sm sm:text-base md:text-lg">
-          {program.description}
-        </p>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+        {/* Mobile: Buttons below canvas, Desktop: Buttons inline */}
+        <div className="flex flex-col gap-3 md:flex-row md:gap-4 md:mt-0 mt-4">
           <Button
             size="lg"
             variant="outline"

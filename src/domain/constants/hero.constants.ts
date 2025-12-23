@@ -41,7 +41,8 @@ export const MOBILE_PRELOAD_WINDOWS = {
  * Canvas rendering constants
  */
 export const CANVAS_CONFIG = {
-  ZOOM_FACTOR: 1.05,
+  ZOOM_FACTOR: 1.05, // Desktop zoom factor
+  MOBILE_ZOOM_FACTOR: 0.95, // Mobile zoom factor (reduced to prevent horizontal cropping)
   BACKGROUND_COLOR: 'hsl(175, 85%, 9%)',
 } as const;
 

@@ -67,8 +67,8 @@ const MobileNavigation = memo(function MobileNavigation({
   onSwitch,
 }: HeroNavigationProps) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-20 z-20 md:hidden">
-      <div className="pointer-events-auto mx-auto w-full max-w-sm px-4">
+    <div className="pointer-events-none relative z-20 w-full md:hidden">
+      <div className="pointer-events-auto mx-auto w-full max-w-sm">
         <div className="flex items-center justify-between">
           <button
             onClick={() => void onSwitch(-1)}

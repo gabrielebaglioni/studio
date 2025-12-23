@@ -1,7 +1,60 @@
-Colori brand
-Scritta "Quick Impact Agency": #10B2D7 (Pacific Cyan)
-Primary: Pacific Cyan (#10B2D7) invece del verde acceso
-Accent: Crayola (#175F8F) - blu scuro
-Secondary: Mindaro (#BFD380) - verde chiaro
-Muted: Spring Bud (#9DEE00) - verde acceso (usato con parsimonia)
-Background: Anchor Green (#022D2B)
+# QIA Monorepo - Microfrontends Architecture
+
+Monorepo con architettura microfrontend per Quick Impact Agency.
+
+## 🚀 Quick Start
+
+### Prerequisiti
+- Node.js >= 18.0.0
+- pnpm >= 9.0.0 (o Corepack abilitato)
+
+### Installazione Dipendenze
+```bash
+pnpm install
+```
+
+### Avvio Sviluppo Locale
+```bash
+pnpm dev
+```
+
+Questo comando avvia:
+- **Proxy unificato** su `http://localhost:3024`
+- **Shell app** (landing) su porta 3000 → `/`
+- **Details app** su porta 3001 → `/projects/*`
+- **Checkout app** su porta 3002 → `/support/*`
+
+Tutte le app sono accessibili tramite `http://localhost:3024` con routing automatico.
+
+## 📁 Struttura
+
+```
+studio/
+├── apps/
+│   ├── shell/          # Landing page (default app)
+│   ├── details/        # Project details pages
+│   └── checkout/       # Payment/support pages
+├── packages/
+│   ├── types/          # Shared types (Project model)
+│   ├── utils/          # Route helpers + eventBus
+│   ├── ui/             # Shared UI components
+│   └── config/         # Shared configs
+└── docs/               # Documentation
+```
+
+## 🛠️ Scripts
+
+- `pnpm dev` - Avvia tutte le app in modalità sviluppo (con proxy unificato su porta 3024)
+- `pnpm build` - Build di tutte le app
+- `pnpm lint` - Lint di tutte le app
+- `pnpm typecheck` - Type checking
+
+## 🔧 Configurazione
+
+- **microfrontends.json**: Configurazione routing (in `apps/shell/`)
+- **turbo.json**: Configurazione Turborepo
+- **package.json**: Workspace root
+
+## 📚 Documentazione
+
+Vedi `docs/tech-research.md` per dettagli tecnici e decisioni architetturali.

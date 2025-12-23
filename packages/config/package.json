@@ -1,0 +1,11 @@
+{
+  "name": "@qia/config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./tsconfig.json",
+  "files": [
+    "tsconfig.json",
+    "eslint.config.js"
+  ]
+}
+

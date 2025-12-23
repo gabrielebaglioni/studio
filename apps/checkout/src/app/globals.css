@@ -1,0 +1,77 @@
+/**
+ * Checkout App - CSS Isolation
+ * NO global reset (Preflight disabled)
+ * NO global selectors for html/body/*
+ * Only app-specific styles
+ * 
+ * NOTE: We include @tailwind base and @tailwind components for utility classes
+ * but we don't use preflight to avoid conflicts with shell CSS in gateway mode
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* App-specific styles */
+
+/* 
+ * Base styles for Tailwind utilities to work correctly
+ * These are minimal and don't conflict with shell CSS
+ */
+@layer base {
+  /* Ensure box-sizing is consistent */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  
+  /* Basic reset for images only (no global reset) */
+  /* Exclude images in .relative containers (Next.js Image with fill) */
+  img:not(.relative img) {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+/* 
+ * Image container isolation - protects Next.js Image from shell CSS interference
+ * In gateway mode, shell's global CSS (preflight) can interfere with image layout.
+ * These rules ensure images stay within their containers regardless of shell CSS.
+ */
+[data-mfe="checkout"] .relative img,
+.relative img {
+  /* Ensure Next.js Image with fill respects container bounds */
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+
+/* Container isolation - prevent shell's container class from affecting checkout */
+[data-mfe="checkout"] .container,
+.container {
+  /* Ensure container has proper box-sizing even if shell CSS interferes */
+  box-sizing: border-box;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Image wrapper isolation - ensure parent containers work correctly with Next.js Image fill */
+[data-mfe="checkout"] .relative,
+.relative {
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Prevent overflow issues from shell CSS */
+[data-mfe="checkout"] .overflow-hidden,
+.overflow-hidden {
+  overflow: hidden;
+}
+

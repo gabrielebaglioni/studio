@@ -1,5 +1,6 @@
-import Link from 'next/link';
 import { Button } from '@qia/ui';
+import { getShellHref, getSupportHref, CrossAppLink } from '@qia/utils';
+import { PROJECTS } from '@qia/types';
 
 export default function NotFound() {
   return (
@@ -14,10 +15,10 @@ export default function NotFound() {
         </div>
         <div className="space-y-4">
           <Button asChild size="lg" className="w-full">
-            <Link href="/support/climate">Support a Project</Link>
+            <CrossAppLink href={getSupportHref(PROJECTS[0]?.id || 'climate')}>Support a Project</CrossAppLink>
           </Button>
           <Button asChild variant="outline" size="lg" className="w-full">
-            <Link href="/">Go Home</Link>
+            <CrossAppLink href={getShellHref()}>Go Home</CrossAppLink>
           </Button>
         </div>
       </div>

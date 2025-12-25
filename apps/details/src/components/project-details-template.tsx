@@ -1,8 +1,7 @@
 import { getProjectById } from '@qia/types';
 import type { ProjectId } from '@qia/types';
 import Image from 'next/image';
-import Link from 'next/link';
-import { getSupportHref } from '@qia/utils/routes';
+import { getSupportHref, CrossAppLink } from '@qia/utils';
 import { Button } from '@qia/ui';
 
 interface ProjectDetailsTemplateProps {
@@ -52,9 +51,9 @@ export function ProjectDetailsTemplate({ projectId }: ProjectDetailsTemplateProp
                   variant="outline" 
                   className="bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white hover:text-foreground transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                 >
-                  <Link href={getSupportHref(projectId)}>
+                  <CrossAppLink href={getSupportHref(projectId)}>
                     Support This Project
-                  </Link>
+                  </CrossAppLink>
                 </Button>
               </div>
             </div>
@@ -69,8 +68,8 @@ export function ProjectDetailsTemplate({ projectId }: ProjectDetailsTemplateProp
           <section className="text-center py-8">
             <div className="max-w-3xl mx-auto">
               <p className="text-xl md:text-2xl leading-relaxed text-foreground/90 font-light">
-                {project.description}
-              </p>
+              {project.description}
+            </p>
             </div>
           </section>
 
@@ -156,9 +155,9 @@ export function ProjectDetailsTemplate({ projectId }: ProjectDetailsTemplateProp
               size="lg" 
               className="text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              <Link href={getSupportHref(projectId)}>
+              <CrossAppLink href={getSupportHref(projectId)}>
                 Support {project.name} Now
-              </Link>
+              </CrossAppLink>
             </Button>
           </section>
         </div>

@@ -205,7 +205,7 @@ export function SupportTemplate({ projectId }: SupportTemplateProps) {
                 size="lg"
                 className="w-full text-lg py-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
-                <Link href={`/support/api/process?projectId=${projectId}&amount=${finalAmount}&method=${paymentMethod}`}>
+                <Link href={`/api/process?projectId=${projectId}&amount=${finalAmount}&method=${paymentMethod}`}>
                   Continue to Payment
                 </Link>
               </Button>

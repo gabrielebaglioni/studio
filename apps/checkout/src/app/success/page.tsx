@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { getProjectById, isValidProjectId } from '@qia/types';
 import { Button } from '@qia/ui';
+import { getShellHref, getDetailsHref, CrossAppLink } from '@qia/utils';
 
 interface SuccessPageProps {
   searchParams: Promise<{ projectId?: string; amount?: string }>;
@@ -57,11 +57,11 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
         </div>
         <div className="space-y-4">
           <Button asChild size="lg" className="w-full">
-            <Link href="/">Return Home</Link>
+            <CrossAppLink href={getShellHref()}>Return Home</CrossAppLink>
           </Button>
           {project && (
             <Button asChild variant="outline" size="lg" className="w-full">
-              <Link href={`/projects/${project.id}`}>View Project Details</Link>
+              <CrossAppLink href={getDetailsHref(project.id)}>View Project Details</CrossAppLink>
             </Button>
           )}
         </div>

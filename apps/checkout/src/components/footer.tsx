@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getSupportHref } from '@qia/utils/routes';
+import { getSupportHref, getDetailsHref, CrossAppLink } from '@qia/utils';
 import { PROJECTS } from '@qia/types';
 
 export function Footer() {
@@ -23,12 +23,12 @@ export function Footer() {
             <ul className="space-y-2">
               {PROJECTS.map((project) => (
                 <li key={project.id}>
-                  <Link
-                    href={`/projects/${project.id}`}
+                  <CrossAppLink
+                    href={getDetailsHref(project.id)}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {project.name}
-                  </Link>
+                  </CrossAppLink>
                 </li>
               ))}
             </ul>
@@ -41,7 +41,7 @@ export function Footer() {
               {PROJECTS.map((project) => (
                 <li key={project.id}>
                   <Link
-                    href={getSupportHref(project.id)}
+                    href={`/${project.id}`}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Support {project.name}

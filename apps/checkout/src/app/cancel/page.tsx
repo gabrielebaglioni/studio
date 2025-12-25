@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { getProjectById, isValidProjectId } from '@qia/types';
 import { Button } from '@qia/ui';
+import { getShellHref, getSupportHref, CrossAppLink } from '@qia/utils';
 
 interface CancelPageProps {
   searchParams: Promise<{ projectId?: string }>;
@@ -28,11 +28,11 @@ export default async function CancelPage({ searchParams }: CancelPageProps) {
         </div>
         <div className="space-y-4">
           <Button asChild size="lg" className="w-full">
-            <Link href="/">Return Home</Link>
+            <CrossAppLink href={getShellHref()}>Return Home</CrossAppLink>
           </Button>
           {project && (
             <Button asChild variant="outline" size="lg" className="w-full">
-              <Link href={`/support/${project.id}`}>Try Again</Link>
+              <CrossAppLink href={getSupportHref(project.id)}>Try Again</CrossAppLink>
             </Button>
           )}
           <p className="text-sm text-muted-foreground">

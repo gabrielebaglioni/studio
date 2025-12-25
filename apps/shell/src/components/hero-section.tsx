@@ -28,7 +28,7 @@ import { trackProgramSwitch } from '@/lib/analytics';
 import { getHeroColors } from '@/domain/models/hero-colors.model';
 import { PARALLAX_CONFIG } from '@/domain/constants/hero.constants';
 import { getMobilePreloadWindow } from '@/services/sequence/sequence-initialization.service';
-import { getDetailsHref, getSupportHref } from '@qia/utils/routes';
+import { getDetailsHref, getSupportHref, CrossAppLink } from '@qia/utils';
 import { emitProjectChanged } from '@qia/utils/eventBus';
 import { LoadingScreen } from './loading-screen';
 import { HeroCanvas } from './hero-section/hero-canvas';
@@ -222,9 +222,9 @@ export function HeroSection() {
                   }}
                   onClick={() => trackButtonClick(program.ctas.secondary, 'hero')}
                 >
-                  <Link href={getDetailsHref(projectId)}>
+                  <CrossAppLink href={getDetailsHref(projectId)}>
                     {program.ctas.secondary}
-                  </Link>
+                  </CrossAppLink>
                 </Button>
 
                 <Button
@@ -238,9 +238,9 @@ export function HeroSection() {
                   }}
                   onClick={() => trackButtonClick(program.ctas.primary, 'hero')}
                 >
-                  <Link href={getSupportHref(projectId)}>
+                  <CrossAppLink href={getSupportHref(projectId)}>
                     {program.ctas.primary}
-                  </Link>
+                  </CrossAppLink>
                 </Button>
               </div>
 

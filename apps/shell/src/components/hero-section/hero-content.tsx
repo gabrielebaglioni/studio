@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@qia/ui';
 import { cn } from '@/lib/utils';
 import { trackButtonClick } from '@/lib/analytics';
-import { getDetailsHref, getSupportHref } from '@qia/utils/routes';
+import { getDetailsHref, getSupportHref, CrossAppLink } from '@qia/utils';
 import type { Program } from '@/lib/data';
 import type { ProjectId } from '@qia/types';
 import type { HeroColors } from '@/domain/types/hero.types';
@@ -85,9 +85,9 @@ export const HeroContent = memo(function HeroContent({
             }}
             onClick={() => trackButtonClick(program.ctas.secondary, 'hero')}
           >
-            <Link href={getDetailsHref(projectId)}>
+            <CrossAppLink href={getDetailsHref(projectId)}>
               {program.ctas.secondary}
-            </Link>
+            </CrossAppLink>
           </Button>
 
           <Button
@@ -107,9 +107,9 @@ export const HeroContent = memo(function HeroContent({
             }}
             onClick={() => trackButtonClick(program.ctas.primary, 'hero')}
           >
-            <Link href={getSupportHref(projectId)}>
+            <CrossAppLink href={getSupportHref(projectId)}>
               {program.ctas.primary}
-            </Link>
+            </CrossAppLink>
           </Button>
         </div>
       </div>

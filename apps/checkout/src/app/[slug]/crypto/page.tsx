@@ -41,7 +41,7 @@ export default function CryptoPaymentPage() {
     setError(null);
 
     try {
-      const response = await fetch('/support/api/verify-crypto-tx', {
+      const response = await fetch('/api/verify-crypto-tx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -90,7 +90,7 @@ export default function CryptoPaymentPage() {
             Your payment has been confirmed.
           </p>
           <Button asChild size="lg">
-            <a href="/support/success">Continue</a>
+            <a href="/success">Continue</a>
           </Button>
         </div>
       </div>

@@ -24,7 +24,7 @@ export default function PayPalPaymentPage() {
     }
 
     // Create PayPal Order
-    fetch('/support/api/create-paypal-order', {
+    fetch('/api/create-paypal-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount, projectId: slug }),
@@ -77,7 +77,7 @@ export default function PayPalPaymentPage() {
         <div className="max-w-md mx-auto text-center px-4">
           <div className="text-lg text-destructive mb-4">{error}</div>
           <Button asChild>
-            <a href={`/support/${slug}`}>Go Back</a>
+            <a href={`/${slug}`}>Go Back</a>
           </Button>
         </div>
       </div>

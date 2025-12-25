@@ -48,21 +48,30 @@ function getAppOrigin(appName: 'shell' | 'details' | 'checkout'): string {
 /**
  * Get the base URL for cross-app navigation
  * Determines whether to use relative paths (gateway/prod) or absolute URLs (standalone)
+ * 
+ * IMPORTANT: Always returns absolute URLs in standalone mode to ensure port changes work correctly
  */
-function getBaseUrl(targetApp: 'details' | 'checkout'): string {
-  // Client-side detection
-  if (typeof window !== 'undefined') {
-    const devMode = (process.env.NEXT_PUBLIC_DEV_MODE as DevMode) || undefined;
-    const currentPort = window.location.port;
+function getBaseUrl(targetApp: 'shell' | 'details' | 'checkout'): string {
+  const devMode = (process.env.NEXT_PUBLIC_DEV_MODE as DevMode) || undefined;
+  const nodeEnv = process.env.NODE_ENV;
 
+  // Production: always use relative URLs
+  if (nodeEnv === 'production') {
+    return '';
+  }
+
+  // Explicit gateway mode: use relative URLs (proxy handles routing)
+  if (devMode === 'gateway') {
+    return '';
+  }
+
+  // Client-side detection for auto mode
+  if (typeof window !== 'undefined') {
+    const currentPort = window.location.port;
+    
     // Explicit standalone mode: use absolute URLs with app-specific ports
     if (devMode === 'standalone') {
       return getAppOrigin(targetApp);
-    }
-
-    // Explicit gateway mode: use relative URLs (proxy handles routing)
-    if (devMode === 'gateway') {
-      return '';
     }
 
     // Auto-detect mode based on current port
@@ -74,31 +83,22 @@ function getBaseUrl(targetApp: 'details' | 'checkout'): string {
     // If we're on a direct app port (3000, 3001, 3002), use standalone mode
     if (['3000', '3001', '3002'].includes(currentPort)) {
       // In standalone mode, we need to change port when navigating to another app
-      // Shell (3000) → Details (3001) or Checkout (3002)
-      // Details (3001) → Checkout (3002) or Shell (3000)
-      // Checkout (3002) → Details (3001) or Shell (3000)
+      // Always return absolute URL to ensure port change
       return getAppOrigin(targetApp);
     }
     
-    // Unknown port or production: use relative URLs
+    // Unknown port: use relative URLs
     return '';
   }
   
   // Server-side: check env vars
-  const devMode = (process.env.NEXT_PUBLIC_DEV_MODE as DevMode) || undefined;
-  const nodeEnv = process.env.NODE_ENV;
-
-  // Production: always use relative URLs
-  if (nodeEnv === 'production') {
-    return '';
-  }
-
-  // In standalone mode server-side, we still generate absolute URLs
-  // (Next.js Link will handle them correctly)
+  // In standalone mode server-side, generate absolute URLs
+  // Client-side will handle the actual navigation
   if (devMode === 'standalone') {
     return getAppOrigin(targetApp);
   }
 
+  // Server-side auto mode: assume gateway (will be corrected client-side)
   // Gateway mode or auto: use relative URLs (client will handle routing)
   return '';
 }
@@ -114,6 +114,22 @@ function getBaseUrl(targetApp: 'details' | 'checkout'): string {
  */
 export function getDetailsHref(projectId: ProjectId): string {
   const baseUrl = getBaseUrl('details');
+  // In gateway/production mode, baseUrl is empty, so we need to add /projects prefix manually
+  if (baseUrl === '') {
+    // Gateway/production mode: add /projects prefix
+    return `/projects/${projectId}`;
+  }
+  // Standalone mode: baseUrl is full origin (e.g., http://localhost:3001)
+  // Check if we're already on the details app (port 3001)
+  if (typeof window !== 'undefined') {
+    const currentPort = window.location.port;
+    // If we're on the same app (details), use relative path without prefix
+    // because Next.js will add basePath automatically
+    if (currentPort === '3001') {
+      return `/${projectId}`;
+    }
+  }
+  // Cross-app navigation in standalone mode: use full URL with prefix
   return `${baseUrl}/projects/${projectId}`;
 }
 
@@ -128,6 +144,22 @@ export function getDetailsHref(projectId: ProjectId): string {
  */
 export function getSupportHref(projectId: ProjectId): string {
   const baseUrl = getBaseUrl('checkout');
+  // In gateway/production mode, baseUrl is empty, so we need to add /support prefix manually
+  if (baseUrl === '') {
+    // Gateway/production mode: add /support prefix
+    return `/support/${projectId}`;
+  }
+  // Standalone mode: baseUrl is full origin (e.g., http://localhost:3002)
+  // Check if we're already on the checkout app (port 3002)
+  if (typeof window !== 'undefined') {
+    const currentPort = window.location.port;
+    // If we're on the same app (checkout), use relative path without prefix
+    // because Next.js will add basePath automatically
+    if (currentPort === '3002') {
+      return `/${projectId}`;
+    }
+  }
+  // Cross-app navigation in standalone mode: use full URL with prefix
   return `${baseUrl}/support/${projectId}`;
 }
 
@@ -138,7 +170,8 @@ export function getSupportHref(projectId: ProjectId): string {
  */
 export function getSuccessHref(): string {
   const baseUrl = getBaseUrl('checkout');
-  return `${baseUrl}/support/success`;
+  // basePath adds /support automatically, so we use relative path
+  return `${baseUrl}/success`;
 }
 
 /**
@@ -148,7 +181,35 @@ export function getSuccessHref(): string {
  */
 export function getCancelHref(): string {
   const baseUrl = getBaseUrl('checkout');
-  return `${baseUrl}/support/cancel`;
+  // basePath adds /support automatically, so we use relative path
+  return `${baseUrl}/cancel`;
+}
+
+/**
+ * Get shell/home page URL
+ * @returns URL path to home/landing page
+ * 
+ * In gateway mode: `/` (relative)
+ * In standalone mode: `http://localhost:3000/` (absolute with port)
+ * In production: `/` (relative)
+ */
+export function getShellHref(): string {
+  const baseUrl = getBaseUrl('shell');
+  return `${baseUrl}/`;
+}
+
+/**
+ * Get projects list page URL
+ * @returns URL path to projects list page
+ * 
+ * In gateway mode: `/projects` (relative)
+ * In standalone mode: `http://localhost:3001/projects` (absolute with port)
+ * In production: `/projects` (relative)
+ */
+export function getProjectsHref(): string {
+  const baseUrl = getBaseUrl('details');
+  // basePath adds /projects automatically, so we use root path
+  return `${baseUrl}/`;
 }
 
 /**

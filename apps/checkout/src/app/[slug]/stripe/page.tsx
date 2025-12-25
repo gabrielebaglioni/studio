@@ -46,7 +46,7 @@ export default function StripePaymentPage() {
         setStripe(stripeInstance);
 
         // Create PaymentIntent
-        const response = await fetch('/support/api/create-payment-intent', {
+        const response = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount, projectId: slug }),
@@ -104,7 +104,7 @@ export default function StripePaymentPage() {
       const { error: confirmError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/support/success?projectId=${slug}&amount=${amount}`,
+          return_url: `${window.location.origin}/success?projectId=${slug}&amount=${amount}`,
         },
       });
 
@@ -161,7 +161,7 @@ export default function StripePaymentPage() {
         <div className="max-w-md mx-auto text-center px-4">
           <div className="text-lg text-destructive mb-4">{error}</div>
           <Button asChild>
-            <a href={`/support/${slug}`}>Go Back</a>
+            <a href={`/${slug}`}>Go Back</a>
           </Button>
         </div>
       </div>

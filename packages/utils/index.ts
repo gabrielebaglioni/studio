@@ -4,4 +4,5 @@
 
 export * from './routes';
 export * from './eventBus';
+export * from './cross-app-link';
 

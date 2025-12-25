@@ -16,11 +16,11 @@ export async function GET(request: NextRequest) {
 
   // Redirect to appropriate payment page
   if (method === 'stripe') {
-    return redirect(`/support/${projectId}/stripe?amount=${amount}`);
+    return redirect(`/${projectId}/stripe?amount=${amount}`);
   } else if (method === 'paypal') {
-    return redirect(`/support/${projectId}/paypal?amount=${amount}`);
+    return redirect(`/${projectId}/paypal?amount=${amount}`);
   } else if (method === 'crypto') {
-    return redirect(`/support/${projectId}/crypto?amount=${amount}`);
+    return redirect(`/${projectId}/crypto?amount=${amount}`);
   }
 
   return NextResponse.json(

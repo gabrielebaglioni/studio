@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalPassThroughEnv": ["TURBO_MFE_PORT"],
+  "globalPassThroughEnv": ["TURBO_MFE_PORT", "NEXT_PUBLIC_DEV_MODE"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

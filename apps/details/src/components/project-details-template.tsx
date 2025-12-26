@@ -70,8 +70,8 @@ export function ProjectDetailsTemplate({ projectId }: ProjectDetailsTemplateProp
           <section className="text-center py-12">
             <div className="max-w-4xl mx-auto">
               <p className="text-xl md:text-2xl lg:text-3xl leading-relaxed text-foreground/90 font-body font-light">
-                {project.description}
-              </p>
+              {project.description}
+            </p>
             </div>
           </section>
 
@@ -82,42 +82,42 @@ export function ProjectDetailsTemplate({ projectId }: ProjectDetailsTemplateProp
               className={`space-y-12 ${index % 2 === 0 ? '' : 'md:flex md:flex-row-reverse md:items-center md:gap-16'}`}
             >
               <div className={index % 2 === 0 ? 'md:flex md:items-center md:gap-16' : ''}>
-                {/* Image/Video */}
-                {(section.image || section.video) && (
+                  {/* Image/Video */}
+                  {(section.image || section.video) && (
                   <div className={`mb-12 md:mb-0 ${index % 2 === 0 ? 'md:w-1/2' : 'md:w-1/2'}`}>
-                    {section.image && (
+                      {section.image && (
                       <div className="relative w-full h-80 md:h-96 lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl group border-2 border-primary/20">
-                        <Image
-                          src={section.image}
-                          alt={section.title}
-                          fill
+                          <Image
+                            src={section.image}
+                            alt={section.title}
+                            fill
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
+                          />
                         <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <div className="absolute inset-0 ring-2 ring-primary/30 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      </div>
-                    )}
-                    {section.video && (
+                        </div>
+                      )}
+                      {section.video && (
                       <div className="relative w-full aspect-video rounded-3xl overflow-hidden shadow-2xl border-2 border-primary/20">
-                        <video
-                          src={section.video}
-                          controls
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {/* Content */}
-                <div className={section.image || section.video ? (index % 2 === 0 ? 'md:w-1/2' : 'md:w-1/2') : ''}>
+                          <video
+                            src={section.video}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Content */}
+                  <div className={section.image || section.video ? (index % 2 === 0 ? 'md:w-1/2' : 'md:w-1/2') : ''}>
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-headline font-black uppercase tracking-tight mb-6 text-foreground">
-                    {section.title}
-                  </h2>
+                      {section.title}
+                    </h2>
                   <div className="w-20 h-1 bg-gradient-to-r from-primary via-accent to-primary mb-8 rounded-full" />
                   <p className="text-lg md:text-xl lg:text-2xl leading-relaxed text-foreground/80 font-body">
-                    {section.content}
-                  </p>
+                      {section.content}
+                    </p>
                 </div>
               </div>
             </section>
@@ -128,8 +128,8 @@ export function ProjectDetailsTemplate({ projectId }: ProjectDetailsTemplateProp
             <section className="bg-gradient-to-br from-card via-card/90 to-card rounded-3xl p-8 md:p-12 lg:p-16 border-2 border-primary/30 shadow-2xl backdrop-blur-sm">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-headline font-black uppercase tracking-tight mb-4 text-foreground">
-                  {details.impact.title}
-                </h2>
+                {details.impact.title}
+              </h2>
                 <div className="w-24 h-1 bg-gradient-to-r from-primary via-accent to-primary mx-auto rounded-full" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">

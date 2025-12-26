@@ -71,10 +71,89 @@
   *::after {
     box-sizing: border-box;
   }
+
+  /* Scoped reset for checkout app only - prevents interference with shell */
+  [data-mfe="checkout"] {
+    margin: 0;
+    padding: 0;
+  }
+
+  [data-mfe="checkout"] body {
+    margin: 0;
+    padding: 0;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'PT Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Reset default borders and outlines */
+  [data-mfe="checkout"] * {
+    border-width: 0;
+    border-style: solid;
+    border-color: hsl(var(--border));
+  }
+
+  /* Link styles */
+  [data-mfe="checkout"] a {
+    color: hsl(var(--primary));
+    text-decoration: none;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  [data-mfe="checkout"] a:hover {
+    color: hsl(var(--primary) / 0.8);
+    text-decoration: underline;
+  }
+
+  [data-mfe="checkout"] a:focus {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Reset headings */
+  [data-mfe="checkout"] h1,
+  [data-mfe="checkout"] h2,
+  [data-mfe="checkout"] h3,
+  [data-mfe="checkout"] h4,
+  [data-mfe="checkout"] h5,
+  [data-mfe="checkout"] h6 {
+    margin: 0;
+    font-weight: inherit;
+    line-height: 1.2;
+  }
+
+  /* Reset lists */
+  [data-mfe="checkout"] ul,
+  [data-mfe="checkout"] ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Reset buttons */
+  [data-mfe="checkout"] button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* Reset form elements */
+  [data-mfe="checkout"] input,
+  [data-mfe="checkout"] textarea,
+  [data-mfe="checkout"] select {
+    font: inherit;
+    margin: 0;
+  }
   
   /* Basic reset for images only (no global reset) */
   /* Exclude images in .relative containers (Next.js Image with fill) */
-  img:not(.relative img) {
+  [data-mfe="checkout"] img:not(.relative img) {
     max-width: 100%;
     height: auto;
     display: block;

@@ -71,10 +71,89 @@
   *::after {
     box-sizing: border-box;
   }
+
+  /* Scoped reset for details app only - prevents interference with shell */
+  [data-mfe="details"] {
+    margin: 0;
+    padding: 0;
+  }
+
+  [data-mfe="details"] body {
+    margin: 0;
+    padding: 0;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'PT Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Reset default borders and outlines */
+  [data-mfe="details"] * {
+    border-width: 0;
+    border-style: solid;
+    border-color: hsl(var(--border));
+  }
+
+  /* Link styles */
+  [data-mfe="details"] a {
+    color: hsl(var(--primary));
+    text-decoration: none;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  [data-mfe="details"] a:hover {
+    color: hsl(var(--primary) / 0.8);
+    text-decoration: underline;
+  }
+
+  [data-mfe="details"] a:focus {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Reset headings */
+  [data-mfe="details"] h1,
+  [data-mfe="details"] h2,
+  [data-mfe="details"] h3,
+  [data-mfe="details"] h4,
+  [data-mfe="details"] h5,
+  [data-mfe="details"] h6 {
+    margin: 0;
+    font-weight: inherit;
+    line-height: 1.2;
+  }
+
+  /* Reset lists */
+  [data-mfe="details"] ul,
+  [data-mfe="details"] ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Reset buttons */
+  [data-mfe="details"] button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* Reset form elements */
+  [data-mfe="details"] input,
+  [data-mfe="details"] textarea,
+  [data-mfe="details"] select {
+    font: inherit;
+    margin: 0;
+  }
   
   /* Basic reset for images only (no global reset) */
   /* Exclude images in .relative containers (Next.js Image with fill) */
-  img:not(.relative img) {
+  [data-mfe="details"] img:not(.relative img) {
     max-width: 100%;
     height: auto;
     display: block;

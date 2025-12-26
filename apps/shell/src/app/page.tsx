@@ -13,15 +13,15 @@ export default function Home() {
   
   return (
     <HeaderHeroProvider value={{ activeHero }}>
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-1 relative">
-          <HeroSection />
-        </main>
-        {/* <Suspense fallback={null}> 
-          <Footer />
-        </Suspense>*/}
-      </div>
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1 relative">
+        <HeroSection />
+      </main>
+      {/* <Suspense fallback={null}> 
+        <Footer />
+      </Suspense>*/}
+    </div>
     </HeaderHeroProvider>
   );
 }

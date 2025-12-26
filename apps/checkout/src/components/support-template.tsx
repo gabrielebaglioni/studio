@@ -119,16 +119,16 @@ export function SupportTemplate({ projectId }: SupportTemplateProps) {
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/70 font-body font-medium text-lg">$</span>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  value={customAmount}
-                  onChange={(e) => handleCustomAmountChange(e.target.value)}
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                value={customAmount}
+                onChange={(e) => handleCustomAmountChange(e.target.value)}
                   placeholder={`${defaultAmount}`}
                   className="w-full pl-8 pr-4 py-4 border-2 border-primary/30 rounded-xl bg-background/60 text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-md hover:shadow-lg font-body text-lg"
                   aria-label="Custom donation amount"
-                />
+              />
               </div>
             </div>
           </section>

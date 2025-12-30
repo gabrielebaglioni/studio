@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
+    "stop": "node scripts/stop.js",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",

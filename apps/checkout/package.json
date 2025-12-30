@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port ${TURBO_MFE_PORT:-3002}",
+    "dev": "node ../../scripts/next-dev-wrapper.js next dev --port ${TURBO_MFE_PORT:-3002}",
     "build": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint",

@@ -15,8 +15,7 @@ Documento creato durante STEP 1 per tracciare lo stato attuale della repo prima 
 - **Routes attuali**: Solo `/` (home)
 - **Routes target**: 
   - Shell: `/`
-  - Details: `/projects`, `/projects/:slug`
-  - Checkout: `/support/:slug`, `/support/success`, `/support/cancel`
+  - Core: `/core`, `/core/:slug`
 
 ## CSS Pipeline
 
@@ -83,8 +82,8 @@ Documento creato durante STEP 1 per tracciare lo stato attuale della repo prima 
 ### Bottoni CTA
 - **Current**: Solo `onClick` con tracking analytics
 - **Target**: Aggiungere href dinamici:
-  - "Dettagli progetto" → `/projects/:slug`
-  - "Supporta / Dona" → `/support/:slug`
+  - "Dettagli progetto" → `/core/:slug`
+  - "Supporta / Dona" → `/core/:slug`
 
 ## TypeScript Configuration
 
@@ -106,8 +105,8 @@ Documento creato durante STEP 1 per tracciare lo stato attuale della repo prima 
 
 1. **CSS Isolation**: 
    - Global CSS in shell deve essere isolato
-   - Details/Checkout non devono ereditare reset
-   - Soluzione: Preflight OFF + prefix per details/checkout
+   - Core non deve ereditare reset
+   - Soluzione: Preflight OFF + data-mfe attribute per isolation
 
 2. **State Communication**:
    - Attualmente state in context React

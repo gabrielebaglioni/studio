@@ -21,8 +21,7 @@ pnpm dev
 Questo comando avvia:
 - **Proxy unificato** su `http://localhost:3024`
 - **Shell app** (landing) su porta 3000 → `/`
-- **Details app** su porta 3001 → `/projects/*`
-- **Checkout app** su porta 3002 → `/support/*`
+- **Core app** su porta 3001 → `/core/*`
 
 Tutte le app sono accessibili tramite `http://localhost:3024` con routing automatico.
 
@@ -32,8 +31,7 @@ Tutte le app sono accessibili tramite `http://localhost:3024` con routing automa
 studio/
 ├── apps/
 │   ├── shell/          # Landing page (default app)
-│   ├── details/        # Project details pages
-│   └── checkout/       # Payment/support pages
+│   └── core/           # Core application (replaces details + checkout)
 ├── packages/
 │   ├── types/          # Shared types (Project model)
 │   ├── utils/          # Route helpers + eventBus

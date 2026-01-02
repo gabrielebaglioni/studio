@@ -64,12 +64,12 @@ function useHeroContext(): HeroContextValue | null {
 
 /**
  * Shared Header Component
- * Used across all apps (shell, details, checkout)
+ * Used across all apps (shell, core)
  * 
  * Features:
  * - Logo/brand link to home
  * - Dynamic colors and logo in shell app (based on hero context)
- * - Static design in details/checkout apps
+ * - Static design in core app
  * - Responsive design
  * - Cross-app navigation support
  * 

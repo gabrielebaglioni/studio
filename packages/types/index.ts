@@ -19,7 +19,7 @@ export interface ProjectSequence {
 }
 
 /**
- * Project details content (for /projects/[slug])
+ * Project details content (for /core/[slug])
  */
 export interface ProjectDetails {
   heroImage?: string;
@@ -40,7 +40,7 @@ export interface ProjectDetails {
 }
 
 /**
- * Support page content (for /support/[slug])
+ * Support page content (for /core/[slug])
  */
 export interface SupportContent {
   heroImage?: string;

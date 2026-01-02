@@ -7,8 +7,7 @@
 - [ ] STEP 2: Bootstrap Monorepo
 - [ ] STEP 3: Standard Config Shared
 - [ ] STEP 4: Estrai Project Model e Route Helpers
-- [ ] STEP 5: Crea Details App
-- [ ] STEP 6: Crea Checkout App
+- [x] STEP 5: Crea Core App (sostituisce Details + Checkout)
 - [ ] STEP 7: Crea microfrontends.json in Shell
 - [ ] STEP 8: Dev Proxy Unificato
 - [ ] STEP 9: Blocca CSS Isolation

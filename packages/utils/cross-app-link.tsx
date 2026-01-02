@@ -40,8 +40,8 @@ export function CrossAppLink({ href, children, className, ...props }: CrossAppLi
     const currentPort = window.location.port;
     const devMode = process.env.NEXT_PUBLIC_DEV_MODE;
 
-    // Check if this is a cross-app link (starts with /projects, /support, or /)
-    const isCrossAppLink = href.startsWith('/projects') || href.startsWith('/support') || (href === '/' || href.startsWith('/?'));
+    // Check if this is a cross-app link (starts with /core or /)
+    const isCrossAppLink = href.startsWith('/core') || (href === '/' || href.startsWith('/?'));
 
     // If explicitly gateway mode, use relative URL but use native <a> for cross-app links
     // to avoid Next.js Link applying basePath from current app
@@ -52,20 +52,17 @@ export function CrossAppLink({ href, children, className, ...props }: CrossAppLi
       return;
     }
 
-    // If on standalone ports (3000, 3001, 3002), check if we need to change port
-    if (['3000', '3001', '3002'].includes(currentPort)) {
+    // If on standalone ports (3000, 3001), check if we need to change port
+    if (['3000', '3001'].includes(currentPort)) {
       // Determine target app based on href path
       let targetPort: string | null = null;
       
       if (href === '/' || href.startsWith('/?')) {
         // Home page -> shell (3000)
         targetPort = '3000';
-      } else if (href.startsWith('/projects')) {
-        // Projects -> details (3001)
+      } else if (href.startsWith('/core')) {
+        // Core -> core app (3001)
         targetPort = '3001';
-      } else if (href.startsWith('/support')) {
-        // Support -> checkout (3002)
-        targetPort = '3002';
       }
 
       // If target port is different from current, convert to absolute URL

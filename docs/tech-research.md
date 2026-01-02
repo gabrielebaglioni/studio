@@ -6,7 +6,7 @@ Questo documento contiene la documentazione raccolta tramite MCP Context7 per le
 
 ## Scope & Goals
 
-Refactor della landing monolitica Next.js in architettura microfrontend multi-zones su Vercel. Obiettivo: dividere l'applicazione in 3 app indipendenti (shell, details, checkout) con routing path-based, mantenendo la funzionalità esistente durante la migrazione incrementale. Supporto per pagamenti fiat (Stripe/PayPal) e crypto (MetaMask/WalletConnect) con verifica server-side.
+Refactor della landing monolitica Next.js in architettura microfrontend multi-zones su Vercel. Obiettivo: dividere l'applicazione in 2 app indipendenti (shell, core) con routing path-based, mantenendo la funzionalità esistente durante la migrazione incrementale. Supporto per pagamenti fiat (Stripe/PayPal) e crypto (MetaMask/WalletConnect) con verifica server-side.
 
 ---
 
@@ -21,7 +21,7 @@ Refactor della landing monolitica Next.js in architettura microfrontend multi-zo
 | basePath | NO - Routing gestito da Vercel Microfrontends | Vercel proxy gestisce routing, basePath non necessario | 2025-01-27 |
 | assetPrefix | SÌ in DEV gateway mode | Necessario per instradare correttamente asset statici (_next/static/*) tramite proxy. In PROD Vercel gestisce automaticamente | 2025-01-27 |
 | Tailwind prefix | NO prefix per ora | Se necessario, aggiungere in futuro | 2025-01-27 |
-| Tailwind preflight | Shell: ON, Details/Checkout: OFF | Solo shell ha reset globale, isolation garantita | 2025-01-27 |
+| Tailwind preflight | Shell: ON, Core: OFF | Solo shell ha reset globale, isolation garantita | 2025-01-27 |
 | CSS Isolation Gateway | data-mfe attribute + scoped rules | In gateway mode, shell CSS globale può interferire con remote. Usiamo data-mfe per scoping e regole CSS robuste per immagini/container | 2025-01-27 |
 | Pagamenti fiat | Stripe Payment Element + PayPal Orders API | Supporto completo metodi di pagamento | 2025-01-27 |
 | Pagamenti crypto | viem (server-side verification) + manual txHash input | Verifica on-chain server-side, UI per inserimento txHash | 2025-01-27 |
@@ -31,8 +31,8 @@ Refactor della landing monolitica Next.js in architettura microfrontend multi-zo
 
 ## Open Questions
 
-- [ ] basePath necessario per details/checkout? (da valutare in STEP 5)
-- [ ] Quale prefix Tailwind per details/checkout? (d-, c-, tw-?)
+- [x] basePath necessario per core? (configurato in next.config.ts)
+- [x] Quale prefix Tailwind per core? (non necessario, isolation via data-mfe)
 - [x] Strategia webhook: endpoint separati per Stripe (`/support/api/webhook/stripe`) e PayPal (`/support/api/webhook/paypal`)
 - [ ] Verifica tx crypto: quante confirmations minime? (attualmente verifica solo success status)
 - [ ] Fallback environment per dev: produzione o staging?
@@ -80,17 +80,10 @@ Basato su documentazione Vercel, il file `microfrontends.json` deve essere creat
         "fallback": "production-url.vercel.app"
       }
     },
-    "details": {
+    "core": {
       "routing": [
         {
-          "paths": ["/projects/:path*"]
-        }
-      ]
-    },
-    "checkout": {
-      "routing": [
-        {
-          "paths": ["/support/:path*"]
+          "paths": ["/core/:path*"]
         }
       ]
     }
@@ -119,20 +112,18 @@ Questo comando:
 3. Inietta `TURBO_MFE_PORT` per ogni app
 4. Avvia tutte le app:
    - **shell** su porta 3000 → gestisce `/`
-   - **details** su porta 3001 → gestisce `/projects/*`
-   - **checkout** su porta 3002 → gestisce `/support/*`
+   - **core** su porta 3001 → gestisce `/core/*`
 
 ### Accesso Unificato
 Tutte le app sono accessibili tramite un'unica URL:
 - **http://localhost:3024** → Shell (landing)
-- **http://localhost:3024/projects/climate** → Details app
-- **http://localhost:3024/support/climate** → Checkout app
+- **http://localhost:3024/core** → Core app
 
 ### Come Funziona
 1. Turborepo avvia il proxy su porta 3024
 2. Il proxy legge i pattern di routing da `microfrontends.json`
 3. Le richieste vengono instradate alle app corrette in base al path
-4. Ogni app gira sulla sua porta (3000, 3001, 3002) ma è accessibile tramite 3024
+4. Ogni app gira sulla sua porta (3000, 3001) ma è accessibile tramite 3024
 
 ### Note
 - Il proxy è solo per sviluppo locale
@@ -282,36 +273,34 @@ const revalidatedData = await fetch(`https://...`, {
 
 ### Problema Identificato
 
-In gateway mode (porta 3024), il CSS globale della shell (preflight + reset) può interferire con i remote app (details/checkout), causando problemi di layout, specialmente con Next.js Image usando `fill`.
+In gateway mode (porta 3024), il CSS globale della shell (preflight + reset) può interferire con i remote app (core), causando problemi di layout, specialmente con Next.js Image usando `fill`.
 
 **Root Cause:**
 - Shell carica `@tailwind base` (include preflight/reset CSS)
 - Shell ha reset globale: `* { @apply border-border; }`
-- In gateway mode, quando si accede a `/projects/*` o `/support/*`, il CSS della shell è già caricato nel browser
+- In gateway mode, quando si accede a `/core/*`, il CSS della shell è già caricato nel browser
 - Il preflight di Tailwind applica regole come `img { max-width: 100%; height: auto; }` e `* { box-sizing: border-box; }`
 - Queste regole possono interferire con Next.js Image quando usa `fill` e `object-cover`
 - La classe `container` definita in shell può collidere con quella usata nei remote
 
 **Sintomo:**
 - Immagini che "escono" dal container in gateway mode (3024)
-- Immagini che stanno correttamente nel container in standalone mode (3001/3002)
+- Immagini che stanno correttamente nel container in standalone mode (3001)
 
 ### Soluzione Implementata
 
 **Approccio: CSS Scoping con data-mfe attribute**
 
 1. **Aggiunto `data-mfe` attribute ai layout HTML:**
-   - `apps/details/src/app/layout.tsx`: `<html lang="en" data-mfe="details">`
-   - `apps/checkout/src/app/layout.tsx`: `<html lang="en" data-mfe="checkout">`
+   - `apps/core/src/app/layout.tsx`: `<html lang="en" data-mfe="core">`
 
 2. **Regole CSS scoped nei remote app:**
-   - `apps/details/src/app/globals.css`
-   - `apps/checkout/src/app/globals.css`
+   - `apps/core/src/app/globals.css`
 
 **Regole CSS aggiunte:**
 ```css
 /* Image container isolation */
-[data-mfe="details"] .relative img,
+[data-mfe="core"] .relative img,
 .relative img {
   position: absolute !important;
   inset: 0 !important;
@@ -321,7 +310,7 @@ In gateway mode (porta 3024), il CSS globale della shell (preflight + reset) pu�
 }
 
 /* Container isolation */
-[data-mfe="details"] .container,
+[data-mfe="core"] .container,
 .container {
   box-sizing: border-box;
   width: 100%;
@@ -332,21 +321,21 @@ In gateway mode (porta 3024), il CSS globale della shell (preflight + reset) pu�
 }
 
 /* Image wrapper isolation */
-[data-mfe="details"] .relative,
+[data-mfe="core"] .relative,
 .relative {
   position: relative;
   box-sizing: border-box;
 }
 
 /* Prevent overflow issues */
-[data-mfe="details"] .overflow-hidden,
+[data-mfe="core"] .overflow-hidden,
 .overflow-hidden {
   overflow: hidden;
 }
 ```
 
 **Perché funziona:**
-- Le regole scoped con `[data-mfe="details"]` hanno priorità più alta e sovrascrivono eventuali interferenze del CSS globale della shell
+- Le regole scoped con `[data-mfe="core"]` hanno priorità più alta e sovrascrivono eventuali interferenze del CSS globale della shell
 - L'uso di `!important` per le proprietà critiche delle immagini assicura che Next.js Image con `fill` funzioni correttamente
 - Le regole per `.container` e `.relative` assicurano che i container abbiano le proprietà corrette anche se il CSS della shell interferisce
 
@@ -358,10 +347,10 @@ In gateway mode (porta 3024), il CSS globale della shell (preflight + reset) pu�
 ### Problema: Asset Statici Non Caricati in Gateway Mode
 
 **Root Cause:**
-Quando le app remote (details/checkout) sono servite tramite gateway proxy (porta 3024), gli asset statici (`/_next/static/*`, CSS, JS) non vengono caricati correttamente perché il proxy instrada solo i path di routing definiti, non gli asset statici.
+Quando le app remote (core) sono servite tramite gateway proxy (porta 3024), gli asset statici (`/_next/static/*`, CSS, JS) non vengono caricati correttamente perché il proxy instrada solo i path di routing definiti, non gli asset statici.
 
 **Sintomo:**
-- Standalone mode (3001/3002): CSS e design funzionano correttamente
+- Standalone mode (3001): CSS e design funzionano correttamente
 - Gateway mode (3024): Solo HTML plain, nessun CSS caricato
 
 **Soluzione Implementata:**
@@ -369,34 +358,18 @@ Quando le app remote (details/checkout) sono servite tramite gateway proxy (port
 Configurazione `assetPrefix` e `rewrites` in `next.config.ts`:
 
 ```typescript
-// apps/details/next.config.ts e apps/checkout/next.config.ts
+// apps/core/next.config.ts
 const nextConfig: NextConfig = {
-  // assetPrefix: Prefissa gli asset statici con il path del routing
+  // basePath: Prefissa le route e gli asset statici con il path del routing
   // Questo assicura che gli asset vengano richiesti con il path corretto
-  assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '/projects', // o '/support'
-  
-  // rewrites: Mappa le richieste asset dal path prefissato al path interno
-  async rewrites() {
-    if (process.env.NODE_ENV === 'production') {
-      return [];
-    }
-    return {
-      beforeFiles: [
-        {
-          source: '/projects/_next/:path*', // o '/support/_next/:path*'
-          destination: '/_next/:path*',
-        },
-      ],
-    };
-  },
+  basePath: process.env.NODE_ENV === 'production' ? undefined : '/core',
 };
 ```
 
 **Come Funziona:**
-1. `assetPrefix: '/projects'` fa sì che Next.js generi asset con path `/projects/_next/static/...`
-2. Il proxy instrada `/projects/*` alla app details (porta 3001)
-3. Il rewrite mappa `/projects/_next/*` a `/_next/*` internamente
-4. Gli asset vengono serviti correttamente dalla app details
+1. `basePath: '/core'` fa sì che Next.js generi asset con path `/core/_next/static/...`
+2. Il proxy instrada `/core/*` alla app core (porta 3001)
+3. Gli asset vengono serviti correttamente dalla app core
 
 **In Produzione:**
 - `assetPrefix` è `undefined` (Vercel gestisce automaticamente)

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter=@qia/qia-paralax-project --filter=qia-video-mask-landing",
     "stop": "node scripts/stop.js",
     "build": "turbo build",
     "lint": "turbo lint",
@@ -17,5 +17,13 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@9.15.0",
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "react": "19",
+        "react-dom": "19"
+      }
+    }
+  }
 }

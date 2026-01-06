@@ -1,9 +1,5 @@
-'use client';
-
 import { memo, useMemo, useContext, createContext } from 'react';
-import Image from 'next/image';
-import { getShellHref } from '@qia/utils/routes';
-import { CrossAppLink } from '@qia/utils';
+// Removed Next.js Image - using native img tag for Astro compatibility
 
 /**
  * Logo mapping for each hero section
@@ -41,7 +37,7 @@ type HeroName = 'CLIMATE' | 'FOOD' | 'SOCIAL';
 
 /**
  * Optional Hero Context Interface
- * This allows shell app to provide hero context via a provider
+ * This allows qia-paralax-project app to provide hero context via a provider
  */
 interface HeroContextValue {
   activeHero: HeroName;
@@ -50,7 +46,7 @@ interface HeroContextValue {
 const HeroContext = createContext<HeroContextValue | null>(null);
 
 /**
- * Provider for hero context (used in shell app)
+ * Provider for hero context (used in qia-paralax-project app)
  * This allows the header to access hero state without direct dependency
  */
 export const HeaderHeroProvider = HeroContext.Provider;
@@ -64,21 +60,21 @@ function useHeroContext(): HeroContextValue | null {
 
 /**
  * Shared Header Component
- * Used across all apps (shell, core)
+ * Used across all apps (qia-paralax-project, core)
  * 
  * Features:
  * - Logo/brand link to home
- * - Dynamic colors and logo in shell app (based on hero context)
+ * - Dynamic colors and logo in qia-paralax-project app (based on hero context)
  * - Static design in core app
  * - Responsive design
  * - Cross-app navigation support
  * 
- * Usage in shell app:
+ * Usage in qia-paralax-project app:
  * ```tsx
  * import { Header, HeaderHeroProvider } from '@qia/ui';
  * import { useHero } from '@/contexts/hero-context';
  * 
- * function ShellLayout() {
+ * function Layout() {
  *   const { activeHero } = useHero();
  *   return (
  *     <HeaderHeroProvider value={{ activeHero }}>
@@ -89,7 +85,7 @@ function useHeroContext(): HeroContextValue | null {
  * ```
  */
 export const Header = memo(function Header() {
-  // Try to get hero context (only available in shell app via HeaderHeroProvider)
+  // Try to get hero context (only available in qia-paralax-project app via HeaderHeroProvider)
   const heroContext = useHeroContext();
   const activeHero = heroContext?.activeHero || 'CLIMATE';
   
@@ -97,18 +93,18 @@ export const Header = memo(function Header() {
   const colors = useMemo(() => HERO_COLORS[activeHero] || HERO_COLORS.CLIMATE, [activeHero]);
   const logoPath = useMemo(() => LOGO_MAP[activeHero] || LOGO_MAP.CLIMATE, [activeHero]);
   
-  // Check if we're in shell app (has hero context)
-  const isShellApp = heroContext !== null;
+  // Check if we're in qia-paralax-project app (has hero context)
+  const isQiaParalaxProject = heroContext !== null;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="w-full flex h-20 items-center justify-center px-4 md:px-6 lg:px-8">
         {/* Logo and Brand Name - Centered */}
-        <CrossAppLink 
-          href={getShellHref()}
+        <a 
+          href="/"
           className="flex items-center gap-4 group transition-opacity hover:opacity-80"
         >
-          {/* Logo - always visible, dynamic in shell, default in other apps */}
+          {/* Logo - always visible, dynamic in qia-paralax-project, default in other apps */}
           <div className="relative h-16 w-16 md:h-20 md:w-20 flex-shrink-0 overflow-hidden flex items-center justify-center">
             <div
               className="relative w-full h-full"
@@ -117,23 +113,20 @@ export const Header = memo(function Header() {
                 transformOrigin: 'center center',
               }}
             >
-              <Image
+              <img
                 src={logoPath}
                 alt="Quick Impact Agency Logo"
-                fill
-                className="object-contain transition-opacity duration-500"
-                priority
-                unoptimized
+                className="h-full w-full object-contain transition-opacity duration-500"
               />
             </div>
           </div>
-          <span 
-            className="font-headline text-xl font-black tracking-tight md:text-2xl transition-colors duration-500"
-            style={isShellApp ? { color: colors.text } : undefined}
-          >
-            Quick Impact Agency
-          </span>
-        </CrossAppLink>
+              <span
+                className="font-headline text-xl font-black tracking-tight md:text-2xl transition-colors duration-500"
+                style={isQiaParalaxProject ? { color: colors.text } : undefined}
+              >
+                Quick Impact Agency
+              </span>
+        </a>
       </div>
     </header>
   );

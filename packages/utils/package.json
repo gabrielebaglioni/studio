@@ -6,7 +6,6 @@
   "types": "./index.ts",
   "exports": {
     ".": "./index.ts",
-    "./routes": "./routes.ts",
     "./eventBus": "./eventBus.ts"
   },
   "dependencies": {

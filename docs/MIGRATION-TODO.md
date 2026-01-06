@@ -40,7 +40,7 @@
 
 ### Azioni
 - [x] Creare struttura apps/, packages/, docs/
-- [x] Spostare tutto in apps/shell/
+- [x] Spostare tutto in apps/qia-paralax-project/
 - [x] Creare root config files
 
 ### File da creare/modificare
@@ -48,8 +48,8 @@
 - [x] root/turbo.json
 - [x] root/package.json
 - [x] root/tsconfig.base.json
-- [x] apps/shell/package.json (update)
-- [x] apps/shell/tsconfig.json (estende base)
+- [x] apps/qia-paralax-project/package.json (update)
+- [x] apps/qia-paralax-project/tsconfig.json (estende base)
 
 ### Verifica
 - [ ] `pnpm install` (da eseguire manualmente - pnpm non disponibile in sandbox)
@@ -58,7 +58,7 @@
 
 ### Note
 - Struttura monorepo creata
-- File spostati in apps/shell/
+- File spostati in apps/qia-paralax-project/
 - Config root pronti
 - Installazione dipendenze da eseguire manualmente
 

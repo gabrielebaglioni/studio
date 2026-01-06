@@ -94,7 +94,6 @@ const patterns = [
   'turbo dev',
   'next-dev-wrapper',
   `--port 3000`,
-  `--port 3001`,
   `--port 3002`,
   `--port 3024`
 ];

@@ -120,7 +120,7 @@ Documento creato durante STEP 1 per tracciare lo stato attuale della repo prima 
 
 4. **Import Aliases**:
    - `@/*` alias attualmente punta a `./src/*`
-   - Dopo move a `apps/shell/` potrebbe rompersi
+   - Dopo move a `apps/qia-paralax-project/` potrebbe rompersi
    - Fix: aggiornare tsconfig dopo move
 
 5. **Dependencies**:
@@ -131,6 +131,6 @@ Documento creato durante STEP 1 per tracciare lo stato attuale della repo prima 
 
 1. Verificare funzionamento attuale: `pnpm dev`
 2. Procedere con STEP 2: Bootstrap Monorepo
-3. Spostare tutto in `apps/shell/`
+3. Spostare tutto in `apps/qia-paralax-project/`
 4. Fix import/alias dopo move
 

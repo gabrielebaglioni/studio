@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalPassThroughEnv": ["TURBO_MFE_PORT", "NEXT_PUBLIC_DEV_MODE"],
+  "globalPassThroughEnv": ["PORT", "NEXT_PUBLIC_DEV_MODE"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -9,7 +9,7 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "passThroughEnv": ["TURBO_MFE_PORT"]
+      "passThroughEnv": ["PORT"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -19,4 +19,3 @@
     }
   }
 }
-

@@ -20,6 +20,10 @@
 /out/
 **/out/
 
+# astro
+/dist/
+**/dist/
+
 # turbo
 .turbo/
 **/.turbo/

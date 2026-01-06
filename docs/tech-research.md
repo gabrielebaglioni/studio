@@ -17,7 +17,7 @@ Refactor della landing monolitica Next.js in architettura microfrontend multi-zo
 | Package Manager | PNPM (workspaces) + Turborepo | Monorepo + dedupe + tooling microfrontends dev | 2025-01-27 |
 | Monorepo | pnpm workspaces + Turborepo | Gestione dipendenze condivise e orchestrazione build | 2025-01-27 |
 | Proxy locale | Turborepo microfrontends proxy | Integrazione nativa con Vercel, supporto fallback | 2025-01-27 |
-| microfrontends.json | apps/shell/ (unico file) | Turborepo legge da shell (root route), Vercel usa stesso file | 2025-01-27 |
+| microfrontends.json | apps/qia-paralax-project/ (unico file) | Turborepo legge da qia-paralax-project (root route), Vercel usa stesso file | 2025-01-27 |
 | basePath | NO - Routing gestito da Vercel Microfrontends | Vercel proxy gestisce routing, basePath non necessario | 2025-01-27 |
 | assetPrefix | SÌ in DEV gateway mode | Necessario per instradare correttamente asset statici (_next/static/*) tramite proxy. In PROD Vercel gestisce automaticamente | 2025-01-27 |
 | Tailwind prefix | NO prefix per ora | Se necessario, aggiungere in futuro | 2025-01-27 |
@@ -26,6 +26,9 @@ Refactor della landing monolitica Next.js in architettura microfrontend multi-zo
 | Pagamenti fiat | Stripe Payment Element + PayPal Orders API | Supporto completo metodi di pagamento | 2025-01-27 |
 | Pagamenti crypto | viem (server-side verification) + manual txHash input | Verifica on-chain server-side, UI per inserimento txHash | 2025-01-27 |
 | Comunicazione MFE | URL-first + CustomEvent opzionale | Source of truth nel path, eventi per UX | TBD |
+| Shell Header | Rimosso | Riduzione bundle size iniziale, miglioramento performance | 2025-01-27 |
+| Code Splitting | Webpack manual chunks | Chunk separati per vendor, canvas, hero, UI per caricamento ottimizzato | 2025-01-27 |
+| Lazy Loading | React.lazy() per HeroSection | Caricamento on-demand dei componenti principali | 2025-01-27 |
 
 ---
 
@@ -39,6 +42,46 @@ Refactor della landing monolitica Next.js in architettura microfrontend multi-zo
 
 ---
 
+## Performance Optimizations (Shell App)
+
+### Code Splitting Strategy
+
+La shell app è configurata con code splitting avanzato per ottimizzare il caricamento JavaScript:
+
+**Chunk Configuration:**
+- `react-vendor`: React, React DOM, Scheduler (priorità 30)
+- `radix-vendor`: Tutti i componenti @radix-ui (priorità 25)
+- `icons-vendor`: Lucide React icons (priorità 20)
+- `canvas-chunk`: Logica canvas e sequenze frame (priorità 15)
+- `hero-chunk`: Hero section componenti (priorità 15)
+- `ui-chunk`: Componenti UI riutilizzabili (priorità 10)
+- `default`: Altri chunk condivisi (priorità 5)
+
+**Lazy Loading:**
+- `HeroSection`: Caricato con `React.lazy()` e `Suspense`
+- `Footer`: Caricato con `React.lazy()` (se abilitato)
+
+**Bundle Optimization:**
+- Tree shaking automatico
+- Minificazione con Terser (console.log rimossi in produzione)
+- Compressione abilitata
+- Package imports ottimizzati (lucide-react, @radix-ui)
+- Source maps disabilitati in produzione per bundle più piccoli
+
+**Risultati Attesi:**
+- Bundle iniziale ridotto del ~40-50%
+- Time to Interactive (TTI) migliorato
+- First Contentful Paint (FCP) più veloce
+- Migliore caching dei chunk vendor
+
+### Header Removal
+
+L'header è stato rimosso dalla shell app per:
+- Ridurre il bundle size iniziale
+- Eliminare dipendenze non necessarie (@qia/ui header)
+- Migliorare il First Contentful Paint
+- Semplificare la struttura dell'app
+
 ## Keywords for MCP Context7
 
 - pnpm workspaces
@@ -48,6 +91,8 @@ Refactor della landing monolitica Next.js in architettura microfrontend multi-zo
 - Turborepo microfrontends proxy / turbo dev / turbo get-mfe-port
 - Vercel Microfrontends
 - Vercel Microfrontends Group / Default application
+- Next.js code splitting / webpack chunking
+- React lazy loading / Suspense
 - microfrontends.json / microfrontends.js
 - MICROFRONTENDS_CONFIG (env var)
 - @vercel/microfrontends
@@ -68,7 +113,7 @@ Refactor della landing monolitica Next.js in architettura microfrontend multi-zo
 
 ## microfrontends.json Schema
 
-Basato su documentazione Vercel, il file `microfrontends.json` deve essere creato SOLO in `apps/shell/` (default application).
+Basato su documentazione Vercel, il file `microfrontends.json` deve essere creato SOLO in `apps/qia-paralax-project/` (default application).
 
 ### Schema Base
 ```json
@@ -107,7 +152,7 @@ pnpm dev
 ```
 
 Questo comando:
-1. Avvia Turborepo che legge `microfrontends.json` da `apps/shell/`
+1. Avvia Turborepo che legge `microfrontends.json` da `apps/qia-paralax-project/`
 2. Avvia il proxy server su porta **3024** (configurata in `options.localProxyPort`)
 3. Inietta `TURBO_MFE_PORT` per ogni app
 4. Avvia tutte le app:

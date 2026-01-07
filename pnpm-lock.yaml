@@ -105,15 +105,45 @@ importers:
       '@gsap/react':
         specifier: ^2.1.2
         version: 2.1.2(gsap@3.14.2)(react@19.2.3)
+      '@qia/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      '@qia/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@qia/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
+      '@radix-ui/react-progress':
+        specifier: ^1.1.2
+        version: 1.1.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-slot':
+        specifier: ^1.2.3
+        version: 1.2.4(@types/react@19.2.7)(react@19.2.3)
+      '@radix-ui/react-toast':
+        specifier: ^1.2.6
+        version: 1.2.15(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@6.4.1(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2))
       astro:
         specifier: ^5.16.6
         version: 5.16.6(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.55.1)(typescript@5.9.3)(yaml@2.8.2)
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       gsap:
         specifier: ^3.14.2
         version: 3.14.2
+      lru-cache:
+        specifier: ^11.0.1
+        version: 11.2.4
+      lucide-react:
+        specifier: ^0.475.0
+        version: 0.475.0(react@19.2.3)
       react:
         specifier: ^19.2.3
         version: 19.2.3
@@ -123,13 +153,22 @@ importers:
       react-responsive:
         specifier: ^10.0.1
         version: 10.0.1(react@19.2.3)
+      tailwind-merge:
+        specifier: ^3.0.1
+        version: 3.4.0
       tailwindcss:
         specifier: ^4.1.13
         version: 4.1.18
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@4.1.18)
     devDependencies:
       '@eslint/js':
         specifier: ^9.36.0
         version: 9.39.2
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.3
       '@types/react':
         specifier: ^19.1.13
         version: 19.2.7
@@ -145,6 +184,12 @@ importers:
       globals:
         specifier: ^16.4.0
         version: 16.5.0
+      postcss:
+        specifier: ^8.4.49
+        version: 8.5.6
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
   packages/config: {}
 
@@ -5666,6 +5711,10 @@ snapshots:
   tailwindcss-animate@1.0.7(tailwindcss@3.4.19(yaml@2.8.2)):
     dependencies:
       tailwindcss: 3.4.19(yaml@2.8.2)
+
+  tailwindcss-animate@1.0.7(tailwindcss@4.1.18):
+    dependencies:
+      tailwindcss: 4.1.18
 
   tailwindcss@3.4.19(yaml@2.8.2):
     dependencies:

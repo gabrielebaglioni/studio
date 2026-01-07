@@ -2,7 +2,6 @@
  * App Content Component
  * Contains all the main app content that needs React context
  * This ensures all components are in the same React tree
- * Note: "use client" is not needed in Astro - client directives handle hydration
  * 
  * Parallax app with:
  * 1. Loading screen (while booting parallax app)

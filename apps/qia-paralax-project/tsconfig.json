@@ -12,14 +12,10 @@
         "../core/*"
       ]
     },
-    "types": [
-      "astro/client"
-    ],
-    // Removed Next.js plugin - using Astro now
   },
-    "include": [
-    "astro.config.mjs",
-    "src/**/*"
+  "include": [
+    "src/**/*",
+    "vite.config.ts"
   ],
   "exclude": [
     "node_modules",

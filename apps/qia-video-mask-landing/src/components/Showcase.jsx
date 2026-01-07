@@ -50,16 +50,16 @@ const Showcase = () => {
             <div className="media">
                 <video src="/videos/game.mp4" loop muted autoPlay playsInline />
                 <div className="mask">
-                    <img src="/mask-logo.svg" />
+                    <img src="/mask-logo.svg" className="object-cover" />
                 </div>
             </div>
 
             <div className="content">
                 <div className="wrapper">
-                    <div className="lg:max-w-md">
-                        <h2 className="text-center lg:text-left">Land Revival</h2>
+                    <div className="w-full lg:max-w-md flex flex-col items-center lg:items-start">
+                        <h2 className="w-full">Land Revival</h2>
 
-                        <div className="space-y-5 mt-7 pe-10 text-center lg:text-left">
+                        <div className="space-y-5 mt-7 w-full px-4 lg:px-0 lg:pe-10 text-center lg:text-left">
                             <p>
                                 Introducing {" "}
                                 <span className="text-white">

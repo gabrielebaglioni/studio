@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @font-face {
   font-family: "Regular";
@@ -34,7 +36,7 @@
   );
 }
 
-@theme {
+:root {
   --font-regular: "Regular";
   --font-medium: "Medium";
   --font-semibold: "SemiBold";
@@ -59,32 +61,34 @@ body {
   font-family: var(--font-semibold);
 }
 
-@utility flex-center {
-  @apply flex items-center justify-center;
-}
+@layer utilities {
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
 
-@utility flex-between {
-  @apply flex items-center justify-between;
-}
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
 
-@utility col-center {
-  @apply flex flex-col items-center justify-center;
-}
+  .col-center {
+    @apply flex flex-col items-center justify-center;
+  }
 
-@utility abs-center {
-  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
-}
+  .abs-center {
+    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+  }
 
-@utility h3-semibold {
-  @apply font-semibold text-xl text-dark-100;
-}
+  .h3-semibold {
+    @apply font-semibold text-xl text-dark-100;
+  }
 
-@utility base-semibold {
-  @apply font-semibold text-base text-dark-100;
-}
+  .base-semibold {
+    @apply font-semibold text-base text-dark-100;
+  }
 
-@utility small-medium {
-  @apply font-medium text-xs;
+  .small-medium {
+    @apply font-medium text-xs;
+  }
 }
 
 @layer components {
@@ -126,15 +130,15 @@ body {
       @apply relative z-10 my-5 lg:-mt-40 bg-black font-semibold text-xl text-dark-100 lg:opacity-0;
 
       .wrapper {
-        @apply container mx-auto px-5 pb-20 2xl:px-0 flex flex-col lg:flex-row justify-center gap-20;
+        @apply container mx-auto px-5 pb-20 2xl:px-0 flex flex-col lg:flex-row justify-center items-center lg:items-start gap-20;
       }
 
       h2 {
-        @apply font-semibold text-3xl lg:text-7xl text-white;
+        @apply font-semibold text-3xl lg:text-7xl text-white text-center lg:text-left w-full;
       }
 
       h3 {
-        @apply font-semibold text-xl lg:text-5xl text-white;
+        @apply font-semibold text-xl lg:text-5xl text-white text-center lg:text-left w-full;
       }
     }
   }

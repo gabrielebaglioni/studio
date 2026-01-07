@@ -1,6 +1,5 @@
 /**
  * HeroSection Component
- * Note: "use client" is not needed in Astro - client directives handle hydration
  * 
  * Clean Code Principles Applied:
  * - Single Responsibility: Orchestrates hero section UI
@@ -26,7 +25,7 @@ import { trackProgramSwitch } from '@/lib/analytics';
 import { getHeroColors } from '@/domain/models/hero-colors.model';
 import { PARALLAX_CONFIG } from '@/domain/constants/hero.constants';
 import { getMobilePreloadWindow } from '@/services/sequence/sequence-initialization.service';
-// Removed CrossAppLink - using Astro client-side routing instead
+// Removed CrossAppLink - using React routing instead
 import { emitProjectChanged } from '@qia/utils/eventBus';
 import { LoadingScreen } from './loading-screen';
 import { HeroCanvas } from './hero-section/hero-canvas';

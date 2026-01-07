@@ -92,6 +92,7 @@ export function HeroSection() {
     heroRef,
     easing: easingMode,
   });
+  
 
   // Freeze draw ref for program switching
   const freezeDrawRef = useRef(false);

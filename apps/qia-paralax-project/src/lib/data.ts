@@ -37,6 +37,7 @@ export type Program = Project;
 
 // Legacy export for backward compatibility - maps PROJECTS to old format
 export const programs = PROJECTS.map((project) => ({
+  id: project.id,
   name: project.name,
   subtitle: project.subtitle,
   description: project.description,

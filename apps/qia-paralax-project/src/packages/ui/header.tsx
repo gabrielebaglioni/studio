@@ -71,7 +71,7 @@ function useHeroContext(): HeroContextValue | null {
  * 
  * Usage in qia-paralax-project app:
  * ```tsx
- * import { Header, HeaderHeroProvider } from '@qia/ui';
+ * import { Header, HeaderHeroProvider } from '@/packages/ui';
  * import { useHero } from '@/contexts/hero-context';
  * 
  * function Layout() {

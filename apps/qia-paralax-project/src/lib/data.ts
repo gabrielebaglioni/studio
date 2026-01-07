@@ -25,8 +25,8 @@ export const socialLinks = [
 ];
 
 // Import first, then re-export
-import { PROJECTS, getProjectById, getProjectByName, isValidProjectId } from '@qia/types';
-import type { Project, ProjectId, ProjectSequence } from '@qia/types';
+import { PROJECTS, getProjectById, getProjectByName, isValidProjectId } from '../packages/types';
+import type { Project, ProjectId, ProjectSequence } from '../packages/types';
 
 // Re-export types and projects from shared package
 export type { Project, ProjectId, ProjectSequence };

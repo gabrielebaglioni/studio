@@ -26,13 +26,13 @@ import { getHeroColors } from '@/domain/models/hero-colors.model';
 import { PARALLAX_CONFIG } from '@/domain/constants/hero.constants';
 import { getMobilePreloadWindow } from '@/services/sequence/sequence-initialization.service';
 // Removed CrossAppLink - using React routing instead
-import { emitProjectChanged } from '@qia/utils/eventBus';
+import { emitProjectChanged } from '@/packages/utils/eventBus';
 import { LoadingScreen } from './loading-screen';
 import { HeroCanvas } from './hero-section/hero-canvas';
 import { HeroContent } from './hero-section/hero-content';
 import { HeroNavigation } from './hero-section/hero-navigation';
 import { SocialLinks } from './hero-section/social-links';
-import { Button } from '@qia/ui';
+import { Button } from '@/packages/ui';
 import { trackButtonClick } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 

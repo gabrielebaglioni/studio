@@ -4,7 +4,7 @@
  * Source of truth remains the URL (slug in path)
  */
 
-import type { ProjectId } from '@qia/types';
+import type { ProjectId } from '../types';
 
 /**
  * Event name for project change notifications

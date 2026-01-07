@@ -1,11 +1,10 @@
 
 import { memo } from 'react';
-import { Button } from '@qia/ui';
+import { Button } from '@/packages/ui';
 import { cn } from '@/lib/utils';
 import { trackButtonClick } from '@/lib/analytics';
-// Removed CrossAppLink - using React routing instead
 import type { Program } from '@/lib/data';
-import type { ProjectId } from '@qia/types';
+import type { ProjectId } from '@/packages/types';
 import type { HeroColors } from '@/domain/types/hero.types';
 
 interface HeroContentProps {

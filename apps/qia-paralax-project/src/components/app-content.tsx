@@ -4,14 +4,12 @@
  * This ensures all components are in the same React tree
  * Note: "use client" is not needed in Astro - client directives handle hydration
  * 
- * Single scrollable page with:
+ * Parallax app with:
  * 1. Loading screen (while booting parallax app)
- * 2. Video Mask app (first section, full height)
- * 3. Parallax app (second section, scrollable)
+ * 2. Parallax app (scrollable)
  */
 import { useState, useEffect } from 'react';
 import { HeroSection } from './hero-section';
-import { VideoMaskSection } from './video-mask-section';
 import { LoadingScreen } from './loading-screen';
 import { useHeroBoot } from '@/hooks/useHeroBoot.hook';
 
@@ -39,14 +37,8 @@ export function AppContent() {
         </div>
       )}
 
-      {/* Main Content - single scrollable page */}
+      {/* Main Content - Parallax App */}
       <div className="relative w-full">
-        {/* Section 1: Video Mask App - Full viewport height */}
-        <section id="video-mask-section" className="relative w-full min-h-screen">
-          <VideoMaskSection />
-        </section>
-
-        {/* Section 2: Parallax App - Scrollable section */}
         <section id="parallax-section" className="relative w-full">
           <main className="flex-1 relative">
             <HeroSection />

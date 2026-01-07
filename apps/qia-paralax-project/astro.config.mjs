@@ -24,8 +24,7 @@ export default defineConfig({
   // This is perfect for frame loading - React islands load independently
   output: 'static',
   server: {
-    port: parseInt(process.env.PORT || '3000', 10),
-    host: true,
+    port: parseInt(process.env.PORT || '4322', 10),
   },
   vite: {
     define: {
@@ -38,8 +37,6 @@ export default defineConfig({
         // Prevent Next.js from being bundled (not needed in Astro)
         'next/image': false,
         'next/link': false,
-        // Alias for video-mask-landing components
-        '@video-mask': join(__dirname, '../qia-video-mask-landing/src'),
       },
     },
     optimizeDeps: {

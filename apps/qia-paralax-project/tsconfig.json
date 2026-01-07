@@ -10,9 +10,6 @@
       ],
       "@/core/*": [
         "../core/*"
-      ],
-      "@video-mask/*": [
-        "../qia-video-mask-landing/src/*"
       ]
     },
     "types": [
